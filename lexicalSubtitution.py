@@ -4,7 +4,7 @@ import numpy, argparse
 
 # note 1 : la méthode de repérage du mot cible à été modifiée. Dans cette version,
 #          elle compte sur la position fournie pour le mot cible dans le fichier d'entrée
-# note 2 : la fenêtrage a été re-implémtné avec la function absolue, i.e. abs()
+# note 2 : le fenêtrage a été re-implémtné avec la function absolue, i.e. abs()
 #          pour améiorer la lisibilité
 
 # todo : les lemmes par MElt peuvent contenir des ambiguïtés, par exemple :
@@ -45,8 +45,9 @@ def windowing (lst, position_center, single_side_width, center_included) :
 def stopword_removal_by_cat (lst, position_center, cats_full) :
 
 	"""
-	Cette fonction enlève les mots appartenant à des catégories
-	morpho-syntaxiques non-renseignées par la liste cats_full.
+	Cette fonction enlève dans la liste d'entrée "lst" tous les mots 
+	appartenant à des catégories morpho-syntaxiques non-renseignées 
+	par la liste cats_full.
 	lst (list) : liste des données d'entrée
 	position_center (int) : l'indice correspondant à la position du mot cible
 	cats_full (list(str)) : liste contenant les étiquettes de
