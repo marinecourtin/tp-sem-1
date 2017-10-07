@@ -22,7 +22,7 @@ def repr_sentence(sentence, c_position) :
 	for i, x in enumerate(sentence.split()) :
 		ret += x.split('/')[0]
 		if i + 1 == int(c_position) :
-			ret += '*'
+			ret += '#'
 		ret += ' '
 	return ret
 
