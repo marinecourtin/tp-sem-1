@@ -17,19 +17,21 @@ def combine (lemme, pos) :
 	ret = lemme + u'_' + catMelt2catFRWAK[pos]
 	return ret
 
-def cosine(w2v_model, vec, pos, n = 10):
+def cosine(w2v_model, vec, n = 10, pos = None):
 
 	"""
 	similarité de cosinus adaptée de la fonction cosine provenant de
 	https://github.com/danielfrg/word2vec/blob/master/word2vec/wordvectors.py
 	"""
 
-	# todo : selectioner les candidats de la même
-	#        catégorie morphosyntaxique, i.e. pos
-
 	if numpy.linalg.norm(vec) != 0 :
 		vec = vec / numpy.linalg.norm(vec)
 	metrics = numpy.dot(w2v_model.vectors, vec)
+	if pos :
+		# todo : si pos spécifie une catégorie POS valide,
+		#        on prend les cadidats de la même catégorie
+		#        ayant les meilleurs scores
+		pass
 	best = numpy.argsort(metrics)[::-1][1:n+1]
 	best_metrics = metrics[best]
 	return best, best_metrics
