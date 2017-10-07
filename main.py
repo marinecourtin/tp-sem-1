@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 #coding:utf-8
 
-import argparse, word2vec, sys
+import argparse, word2vec, sys, numpy
 
 cat_ok = ['ADJ', 'NC', 'NPP', 'V', 'VINF', 'VIMP', 'VPP', 'ADV'] # reprise de la catégorie de Marine
 catMelt2catFRWAK = {'NPP'  : 'n', \
@@ -17,6 +17,20 @@ def combine (lemme, pos) :
 	ret = lemme + u'_' + catMelt2catFRWAK[pos]
 	return ret
 
+def cosine(w2v_model, vec, n = 10):
+
+	"""
+	similarité de cosinus adaptée de la fonction cosine provenant de
+	https://github.com/danielfrg/word2vec/blob/master/word2vec/wordvectors.py
+	"""
+
+	if numpy.linalg.norm(vec) != 0 :
+		vec = vec / numpy.linalg.norm(vec)
+	metrics = numpy.dot(w2v_model.vectors, vec)
+	best = numpy.argsort(metrics)[::-1][1:n+1]
+	best_metrics = metrics[best]
+	return best, best_metrics
+
 if __name__ == '__main__' :
 
 	parser = argparse.ArgumentParser(description='Analyse sémantique TP-1 : substitution lexicale')
@@ -26,6 +40,7 @@ if __name__ == '__main__' :
 	# ressources
 	w2v = 'frWac_postag_no_phrase_700_skip_cut50.bin'
 	model = word2vec.load(w2v)
+	print(model.vectors.shape)
 
 	# hyperparamètres à varirer par la suite
 	CIBLE_INCLUSE = False
@@ -61,10 +76,14 @@ if __name__ == '__main__' :
 					if not Z : Z = model[lemme_pos]
 					else     : Z += model[lemme_pos]
 				except :
-					# pas de représentations vectorielles dans FRWAK
-					sys.stdout.write(lemme_pos)
+					# attention : des ambiguïtés peuvent apprarître
+					# dans la forme lemmatisée d'un token, fournie
+					# par MElt. Par exemple, vivre|voir
+					# dans vit/V/vivre|voir
+
+					# sys.stdout.write(lemme_pos) # debug
 					continue
 
-			#print (model.most_similar(negative=['tremendous']))
-			#print (model.most_similar(positive=Z, topn=10))
+			indexes,scores = cosine(model, Z)
+			print (id,c,CTX,model.generate_response(indexes,scores).tolist())
 
