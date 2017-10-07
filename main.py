@@ -17,12 +17,15 @@ def combine (lemme, pos) :
 	ret = lemme + u'_' + catMelt2catFRWAK[pos]
 	return ret
 
-def cosine(w2v_model, vec, n = 10):
+def cosine(w2v_model, vec, pos, n = 10):
 
 	"""
 	similarité de cosinus adaptée de la fonction cosine provenant de
 	https://github.com/danielfrg/word2vec/blob/master/word2vec/wordvectors.py
 	"""
+
+	# todo : selectioner les candidats de la même
+	#        catégorie morphosyntaxique, i.e. pos
 
 	if numpy.linalg.norm(vec) != 0 :
 		vec = vec / numpy.linalg.norm(vec)
@@ -76,12 +79,9 @@ if __name__ == '__main__' :
 					if not Z : Z = model[lemme_pos]
 					else     : Z += model[lemme_pos]
 				except :
-					# attention : des ambiguïtés peuvent apprarître
-					# dans la forme lemmatisée d'un token, fournie
-					# par MElt. Par exemple, vivre|voir
-					# dans vit/V/vivre|voir
-
-					# sys.stdout.write(lemme_pos) # debug
+					# fixme : des ambiguïtés dans la forme lemmatisée
+					# vivre|voir dans vit/V/vivre|voir est inconnue
+					# pour les ressources lexicales FRWAK/FRDIC
 					continue
 
 			indexes,scores = cosine(model, Z)
