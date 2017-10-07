@@ -17,24 +17,32 @@ def combine (lemme, pos) :
 	ret = lemme + u'_' + catMelt2catFRWAK[pos]
 	return ret
 
-def cosine(w2v_model, vec, n = 10, pos = None):
+def generate_response(w2v_model, vec, pos_desired, n = 10):
 
 	"""
 	similarité de cosinus adaptée de la fonction cosine provenant de
 	https://github.com/danielfrg/word2vec/blob/master/word2vec/wordvectors.py
 	"""
 
-	if numpy.linalg.norm(vec) != 0 :
-		vec = vec / numpy.linalg.norm(vec)
+	# normalisation de vecteur 'vec': v = v / |v|, si |v| > 0
+	if numpy.linalg.norm(vec) != 0 : vec = vec / numpy.linalg.norm(vec)
+
 	metrics = numpy.dot(w2v_model.vectors, vec)
-	if pos :
-		# todo : si pos spécifie une catégorie POS valide,
-		#        on prend les cadidats de la même catégorie
-		#        ayant les meilleurs scores
-		pass
-	best = numpy.argsort(metrics)[::-1][1:n+1]
-	best_metrics = metrics[best]
-	return best, best_metrics
+	best = numpy.argsort(metrics)[::-1][1:]
+
+	cnt = 0
+	candidats = []
+	scores = []
+	for cursor, elt in enumerate(best) :
+		word_pos = w2v_model.vocab[elt]
+		pos = word_pos.split('_')[-1]
+		if pos == pos_desired :
+			candidats.append(w2v_model.vocab[elt])
+			scores.append(metrics[elt])
+			cnt += 1
+			if cnt == n : break
+
+	return candidats, scores
 
 if __name__ == '__main__' :
 
@@ -45,10 +53,9 @@ if __name__ == '__main__' :
 	# ressources
 	w2v = 'frWac_postag_no_phrase_700_skip_cut50.bin'
 	model = word2vec.load(w2v)
-	print(model.vectors.shape)
 
 	# hyperparamètres à varirer par la suite
-	CIBLE_INCLUSE = False
+	CIBLE_INCLUSE = True
 	F = 3
 
 	with open(args.infile) as f :
@@ -82,10 +89,16 @@ if __name__ == '__main__' :
 					else     : Z += model[lemme_pos]
 				except :
 					# fixme : des ambiguïtés dans la forme lemmatisée
-					# vivre|voir dans vit/V/vivre|voir est inconnue
-					# pour les ressources lexicales FRWAK/FRDIC
+					# comme vivre|voir dans vit/V/vivre|voir à résoudre
+					# afin de mieux profiter des ressources lexicales
 					continue
 
-			indexes,scores = cosine(model, Z)
-			print (id,c,CTX,model.generate_response(indexes,scores).tolist())
+			candidats, scores = generate_response(model, Z, catMelt2catFRWAK[pos])
+			print ('instance id : {}'.format(id))
+			print ('target token : cible {}'.format(c))
+			print ('CTX(F = {}, CIBLE_INCLUSE = {}) : '.format(F, CIBLE_INCLUSE))
+			for ctx in CTX : print (ctx)
+			print ("{:<20s} {:<16s}".format('substituants','scores'))
+			for c, s in zip(candidats, scores) : print ('{:>20s} {:>16.15f}'.format(c, s))
+			print('\n')
 
