@@ -17,6 +17,15 @@ def combine (lemme, pos) :
 	ret = lemme + u'_' + catMelt2catFRWAK[pos]
 	return ret
 
+def repr_sentence(sentence, c_position) :
+	ret = ''
+	for i, x in enumerate(sentence.split()) :
+		ret += x.split('/')[0]
+		if i + 1 == int(c_position) :
+			ret += '*'
+		ret += ' '
+	return ret
+
 def generate_response(w2v_model, vec, pos_desired, n = 10):
 
 	"""
@@ -93,12 +102,11 @@ if __name__ == '__main__' :
 					# afin de mieux profiter des ressources lexicales
 					continue
 
-			#if lemme == 'arrêter':
-			#	print (pos) ; exit()
 			candidats, scores = generate_response(model, Z, c_pos)
 			print ('instance id : {}'.format(id))
 			print ('target token : {}'.format(c))
 			print ('target POS : {}'.format(c_pos))
+			print ('full sentence : \n\t{}'.format(repr_sentence(sentence, c_position)))
 			print ('CTX(F = {}, CIBLE_INCLUSE = {}) : '.format(F, CIBLE_INCLUSE))
 			for ctx in CTX : print ('\t',ctx)
 			print ("{:<20s} {:<16s}".format('substituants','scores'))
