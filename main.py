@@ -93,11 +93,14 @@ if __name__ == '__main__' :
 					# afin de mieux profiter des ressources lexicales
 					continue
 
-			candidats, scores = generate_response(model, Z, catMelt2catFRWAK[pos])
+			#if lemme == 'arrêter':
+			#	print (pos) ; exit()
+			candidats, scores = generate_response(model, Z, c_pos)
 			print ('instance id : {}'.format(id))
-			print ('target token : cible {}'.format(c))
+			print ('target token : {}'.format(c))
+			print ('target POS : {}'.format(c_pos))
 			print ('CTX(F = {}, CIBLE_INCLUSE = {}) : '.format(F, CIBLE_INCLUSE))
-			for ctx in CTX : print (ctx)
+			for ctx in CTX : print ('\t',ctx)
 			print ("{:<20s} {:<16s}".format('substituants','scores'))
 			for c, s in zip(candidats, scores) : print ('{:>20s} {:>16.15f}'.format(c, s))
 			print('\n')
