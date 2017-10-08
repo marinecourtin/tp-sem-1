@@ -9,6 +9,7 @@
 
 # todos :
 # 2. élaborer un test des hyperparamètres F, CIBLE_INCLUSES pour avoir un premier bilan -> utiliser la méthode grid search ?
+#     -> c'est-à-dire ? itérer sur une double boucle avec (F,CIBLE_INCLUSES) dans toutes les valeurs pertinentes ?
 # 3. pondérer les vecteurs par les poids obtenus par la TF-IDF sur un corpus de français
 # 4. introduire 2-ème solution sur FREDIST : (Henestroza Anguiano & Denis, 2011) : les plus proches voisins sont déjà
 #                                  calculés, téléchargeable ici : https://gforge.inria.fr/projects/fredist/
@@ -18,6 +19,27 @@
 # 	programme).
 # 8. Toute idée d’amélioration est la bienvenue
 # 9. (implémentation facultative) repas au Crous
+
+# références :
+# je nous mets deux articles ci-dessous présentant leur solution pour cette tâche, ça permet de comprendre
+# comment les chercheurs voient la chose 
+# [1] Melamud, O., Levy, O., Dagan, I., & Ramat-Gan, I. (2015, June). A Simple Word Embedding Model for Lexical Substitution. In VS@ HLT-NAACL (pp. 1-7).
+# [2] Desalle, Y., Navarro, E., Chudy, Y., Magistry, P., & Gaume, B. (2014). BACANAL: Balades Aléatoires Courtes pour ANAlyses Lexicales Application à la substitution lexicale. In TALN-20 2014: Atelier SEMDIS.
+# 
+# pour le premier article, on voit que les mots dans le contexte ne sont jamais sommées pour faire qqch.
+# ils sont impliqués dans une métrique de manière 'non-linéaire'
+
+# demande de précisions :
+# sur la consigne, on ne voit pas très bien elle veut soit (pour le cas de FRWAC)
+# 1. on génére des canadidats à partir de l'information du vecteur du  mot cible et en ordonner la liste par 
+#    leur similarité avec son contexte plein 
+# soit
+# 2. trouver directement les mots les plus proches du contexte plein dans le vocaubulaire
+# 
+# je ne sais pas si tu vois ce que je voulais dire. en fait, j'ai implémenté 2., ça fait que mes candidats sont
+# préalablement proche du contexte. après avoir lu des articles, je pense que c'est 1 qui est mieux. je 
+# le corrigerai. Mais la consigne -> elle te paraît claire sur ce point-là ?
+
 
 # attention : the script d'évaluation n'est compatible qu'avec python 2
 #             en conséquence, notre projet code est contraint d'être développé
