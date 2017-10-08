@@ -8,18 +8,18 @@
 # Luigi Liu (Paris Nanterre, MoDyCo)
 
 # todos :
-# 1. intégrer le script d'évaluation https://www.irit.fr/semdis2014/data/semdis2014_evaluation.tar.gz
 # 2. éloborer un test des hyperparamètres F, CIBLE_INCLUSES pour avoir un premier bilan
 # 3. pondérer les vecteurs par les poids obtenus par la TF-IDF sur un corpus de français
 # 4. introduire 2-ème solution sur FREDIST : (Henestroza Anguiano & Denis, 2011) : les plus proches voisins sont déjà
 #                                  calculés, téléchargeable ici : https://gforge.inria.fr/projects/fredist/
 # 5. correction des lemmes non prises en charge à cause de leur ambiguïté, voir fixme
-# 6. rapport écrit suivant la consigne :
+# 6. Enlèvement des asterisks dans les lemmes (remarque de Marine)
+# 7. rapport écrit suivant la consigne :
 # 	Vous ferez un petit rapport réexpliquant la tâche, la méthode, et commentant vos résultats.
 # 	Votre programme doit contenir une aide en ligne (l’option –h doit indiquer comment utiliser le
 # 	programme).
-# 7. Toute idée d’amélioration est la bienvenue
-# 8. (implémentation facultative) repas au Crous
+# 8. Toute idée d’amélioration est la bienvenue
+# 9. (implémentation facultative) repas au Crous
 
 # attention : the script d'évalutaiton n'est compatible qu'avec python 2
 #             en conséqucne, notre projet code est contraint d'être développé
@@ -170,12 +170,13 @@ if __name__ == '__main__' :
 				elif abs(i - c_position_new) <= F :
 					CTX.append(t)
 			# vectorisation des mots en contexte
-			# t0 :   Z = Z0
-			# t1 :   Z = Z0 + Z1
-			# t2 :   Z = Z0 + Z1 + Z2
-			# tn-2 : Z = Z0 + Z1 + ... + Zn-2
-			# tn-1 : Z = Z0 + Z1 + ... + Zn-2 + Zn-1 -> la somme souhaitée
+			# t0 :   Z = v_0
+			# t1 :   Z = v_0 + v_1
+			# t2 :   Z = v_0 + v_1 + v_2
+			# tn-2 : Z = v_0 + v_1 + ... + v_n-2
+			# tn-1 : Z = v_0 + v_1 + ... + v_n-2 + v_n-1 -> la somme souhaitée
 			# n : le nombre de mots pleins dans le contexte
+			# v_i : i-ème vecteur de mot visité pour le calcul de leur somme
 			# + : addition vectorielle
 			Z = None 
 			for ctx in CTX :
@@ -227,6 +228,9 @@ if __name__ == '__main__' :
 	if fout : fout.flush(); fout.close()
 
 	# function d'évaluation provenant des "utilisateurs" de SemDis2014
+	# le résultat d'évaluation reste très mauvais -> il y a eput-être des bogues, etc.
+	# il est intéressant de lancer des tests pour voir avec quels paramètres (F,CIBLE_INCLUSES)
+	# on a le meilleur résultat 
 	goldfile = 'semdis2014_lexsub_gold.txt'
 	testFile = args.outfile
 	s = semdis_eval.SemdisEvaluation(goldfile)
