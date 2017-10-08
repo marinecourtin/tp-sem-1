@@ -8,7 +8,7 @@
 # Luigi Liu (Paris Nanterre, MoDyCo)
 
 # todos :
-# 2. éloborer un test des hyperparamètres F, CIBLE_INCLUSES pour avoir un premier bilan
+# 2. élaborer un test des hyperparamètres F, CIBLE_INCLUSES pour avoir un premier bilan -> utiliser la méthode grid search ?
 # 3. pondérer les vecteurs par les poids obtenus par la TF-IDF sur un corpus de français
 # 4. introduire 2-ème solution sur FREDIST : (Henestroza Anguiano & Denis, 2011) : les plus proches voisins sont déjà
 #                                  calculés, téléchargeable ici : https://gforge.inria.fr/projects/fredist/
@@ -19,21 +19,21 @@
 # 8. Toute idée d’amélioration est la bienvenue
 # 9. (implémentation facultative) repas au Crous
 
-# attention : the script d'évalutaiton n'est compatible qu'avec python 2
-#             en conséqucne, notre projet code est contraint d'être développé
+# attention : the script d'évaluation n'est compatible qu'avec python 2
+#             en conséquence, notre projet code est contraint d'être développé
 #             pour python 2.
 
-# proposition 
-# la somme des vecteurs de mot dans le contexte plein semble faire perdre 
+# proposition
+# la somme des vecteurs de mot dans le contexte plein semble faire perdre
 # plus d'informations qu'elle permet d'agréer. nous proposons de ne pas sommer
-# les vecteurs, mais conisdérer les vecteurs du contexte plein comme un ensmeble
+# les vecteurs, mais conisdérer les vecteurs du contexte plein comme un ensemble
 # de coordonnées qui permettent de localiser le bon mot cible
 #
 # note : si nous voulons traiter les vecteurs de mots dans le contexte plein comme
-# des coordonnées -> Algorithme de Gram-Schmidt est utile pour trouver 
+# des coordonnées -> Algorithme de Gram-Schmidt est utile pour trouver
 # les coordonnées de bonne formation (Algèbre linéaire)
 #
-# soit les vecteurs du mots pleins dans le contexte v_x1, v_x2, ..., v_xn, 
+# soit les vecteurs du mots pleins dans le contexte v_x1, v_x2, ..., v_xn,
 # vx_i : i-ème vecteur du contexte plein, i in [1,n], x pour noter conte'x'te
 # vc : vecteur du mot cible
 # nous définissions un pi comme le produit scalaire entre v_xi et vc
@@ -42,7 +42,7 @@
 # qi := produit_scalaire(v_xi, vy)
 # Q = [q1,q2,...,qN]
 # vy est un vecteur de mot dans le vocabualaire
-# 
+#
 # la nouvelle mesure de sililarité comme
 # A. produit_scalaire(P,Q) version non-normalisée
 # B. produit_scalaire(P,Q) version normalisée
@@ -154,6 +154,30 @@ def generate_response(w2v_model, vec, pos_desired, n = 10):
 
 	return candidats, scores
 
+
+def generateSubstitutes(c, c_pos, n=15):
+	"""
+	sélectionne les candidats substituts à la cible. La fonction est basée sur
+	l'utilisation de la ressource FREDIST disponible à l'adresse :
+	https://gforge.inria.fr/projects/fredist/
+	args : cible, pos de la cible, nombre de candidats
+	output : liste des n candidats les plus similaires
+
+	"""
+	c_pos = c_pos.upper()
+	# print(c, c_pos)
+	with codecs.open("./thesauri-1.0/thesaurus_french_"+c_pos+'.txt', encoding = 'utf-8') as f :
+		for line in f:
+			line = line.split("\t")
+			term, subs = (line[0].split("|")[1], line[1:][:n])
+			if term == c:
+				candidats = [sub.split("|")[1] for sub in subs]
+				candidats = [can.split(":")[0] for can in candidats]
+				print(term, c, candidats)
+		if not candidats:
+			return None
+	return candidats
+
 if __name__ == '__main__' :
 
 	parser = argparse.ArgumentParser(description='Analyse sémantique TP-1 : substitution lexicale')
@@ -205,7 +229,7 @@ if __name__ == '__main__' :
 				lemmes = lemmes.replace(u'*',u'')
 
 				# traitier l'ambiguiïté dans les lemmes
-				if u'|' in lemmes : 
+				if u'|' in lemmes :
 					for lemme in lemmes.split(u'|') :
 						if lemme :
 							CTX2.append([token,pos,lemme])
@@ -223,7 +247,7 @@ if __name__ == '__main__' :
 			# v_i : i-ème vecteur de mot visité pour le calcul de leur somme
 			# + : addition vectorielle
 			# print(CTX) ; exit()
-			Z = None 
+			Z = None
 			for ctx in CTX :
 				token, pos, lemme = ctx
 				lemme_pos = lemme.lower() + u'_' + conv_pos(pos)
@@ -231,13 +255,13 @@ if __name__ == '__main__' :
 					if not Z :
 						# initier "la somme vectorielle" Z par la valeur du premier vecteur visité
 						# comme ça Z est typé comme un vecteur
-						Z = model[lemme_pos] 
+						Z = model[lemme_pos]
 					else :
-						# une fois initiation faite, on accumule des vecteurs par 
-						# l'addition vectorielle ou pointwise addition 
+						# une fois initiation faite, on accumule des vecteurs par
+						# l'addition vectorielle ou pointwise addition
 						#
 						# note: lorsque le symbole + et utilisé comme un opérateur binaire
-						# dans, par exemple a + b, '+' est devenue une addition vectorielle 
+						# dans, par exemple a + b, '+' est devenue une addition vectorielle
 						# si a, b sont du type vectoriel et de la même taille (longueur)
 						Z += model[lemme_pos]
 				except :
@@ -274,7 +298,7 @@ if __name__ == '__main__' :
 	# function d'évaluation provenant des "utilisateurs" de SemDis2014
 	# le résultat d'évaluation reste très mauvais -> il y a eput-être des bogues, etc.
 	# il est intéressant de lancer des tests pour voir avec quels paramètres (F,CIBLE_INCLUSES)
-	# on a le meilleur résultat 
+	# on a le meilleur résultat
 	goldfile = 'semdis2014_lexsub_gold.txt'
 	testFile = args.outfile
 	s = semdis_eval.SemdisEvaluation(goldfile)
