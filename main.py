@@ -170,14 +170,29 @@ if __name__ == '__main__' :
 				elif abs(i - c_position_new) <= F :
 					CTX.append(t)
 			# vectorisation des mots en contexte
-			Z = None
+			# t0 :   Z = Z0
+			# t1 :   Z = Z0 + Z1
+			# t2 :   Z = Z0 + Z1 + Z2
+			# tn-2 : Z = Z0 + Z1 + ... + Zn-2
+			# tn-1 : Z = Z0 + Z1 + ... + Zn-2 + Zn-1 -> la somme souhaitée
+			# n : le nombre de mots pleins dans le contexte
+			# + : addition vectorielle
+			Z = None 
 			for ctx in CTX :
 				token, pos, lemme = ctx
 				lemme_pos = lemme.lower() + u'_' + conv_pos(pos)
 				try :
 					if not Z :
-						Z = model[lemme_pos]
+						# initier "la somme vectorielle" Z par la valeur du premier vecteur visité
+						# comme ça Z est typé comme un vecteur
+						Z = model[lemme_pos] 
 					else :
+						# une fois initiation faite, on accumule des vecteurs par 
+						# l'addition vectorielle ou pointwise addition 
+						#
+						# note: lorsque le symbole + et utilisé comme un opérateur binaire
+						# dans, par exemple a + b, '+' est devenue une addition vectorielle 
+						# si a, b sont du type vectoriel et de la même taille (longueur)
 						Z += model[lemme_pos]
 				except :
 					# fixme : des ambiguïtés dans la forme lemmatisée
