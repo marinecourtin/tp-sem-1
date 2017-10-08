@@ -12,8 +12,6 @@
 # 3. pondérer les vecteurs par les poids obtenus par la TF-IDF sur un corpus de français
 # 4. introduire 2-ème solution sur FREDIST : (Henestroza Anguiano & Denis, 2011) : les plus proches voisins sont déjà
 #                                  calculés, téléchargeable ici : https://gforge.inria.fr/projects/fredist/
-# 5. correction des lemmes non prises en charge à cause de leur ambiguïté, voir fixme
-# 6. Enlèvement des asterisks dans les lemmes (remarque de Marine)
 # 7. rapport écrit suivant la consigne :
 # 	Vous ferez un petit rapport réexpliquant la tâche, la méthode, et commentant vos résultats.
 # 	Votre programme doit contenir une aide en ligne (l’option –h doit indiquer comment utiliser le
@@ -143,7 +141,7 @@ if __name__ == '__main__' :
 
 	# hyperparamètres (à varier par la suite)
 	CIBLE_INCLUSE = True
-	F = 0
+	F = -1
 
 	fout = codecs.open(args.outfile, 'w', encoding = 'utf-8')
 
@@ -171,6 +169,24 @@ if __name__ == '__main__' :
 						CTX.append(t)
 				elif abs(i - c_position_new) <= F :
 					CTX.append(t)
+
+			# nettoyage du contexte plein
+			CTX2 = []
+			for ctx in CTX :
+				token, pos, lemmes = ctx
+
+				# suppression de '*' dans les lemmes
+				lemmes = lemmes.replace(u'*',u'')
+
+				# traitier l'ambiguiïté dans les lemmes
+				if u'|' in lemmes : 
+					for lemme in lemmes.split(u'|') :
+						if lemme :
+							CTX2.append([token,pos,lemme])
+				else :
+					CTX2.append([token, pos, lemmes])
+			CTX = CTX2
+
 			# vectorisation des mots en contexte
 			# t0 :   Z = v_0
 			# t1 :   Z = v_0 + v_1
@@ -199,9 +215,6 @@ if __name__ == '__main__' :
 						# si a, b sont du type vectoriel et de la même taille (longueur)
 						Z += model[lemme_pos]
 				except :
-					# fixme : des ambiguïtés dans la forme lemmatisée
-					# comme vivre|voir dans vit/V/vivre|voir à résoudre
-					# afin de mieux profiter des ressources lexicales
 					continue
 
 			# génération des substituants et leurs scores de similarités avec le contexte
