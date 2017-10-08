@@ -3,6 +3,24 @@
 # Prérequis :
 # pip install Cython word2vec
 
+# auteurs
+# Marine Courtin (Paris Sorbonne Nouvelle)
+# Luigi Liu (Paris Nanterre, MoDyCo)
+
+# todos :
+# 1. intégrer le script d'évaluation https://www.irit.fr/semdis2014/data/semdis2014_evaluation.tar.gz
+# 2. éloborer un test des hyperparamètres F, CIBLE_INCLUSES pour avoir un premier bilan
+# 3. pondérer les vecteurs par les poids obtenus par la TF-IDF sur un corpus de français
+# 4. introduire 2-ème solution sur FREDIST : (Henestroza Anguiano & Denis, 2011) : les plus proches voisins sont déjà
+#                                  calculés, téléchargeable ici : https://gforge.inria.fr/projects/fredist/
+# 5. correction des lemmes non prises en charge à cause de leur ambiguïté, voir fixme
+# 6. rapport écrit suivant la consigne :
+# 	Vous ferez un petit rapport réexpliquant la tâche, la méthode, et commentant vos résultats.
+# 	Votre programme doit contenir une aide en ligne (l’option –h doit indiquer comment utiliser le
+# 	programme).
+# 7. Toute idée d’amélioration est la bienvenue
+# 8. (implémentation facultative) repas au Crous
+
 import argparse, word2vec, sys, numpy, codecs
 
 # VARIABLES GLOBALES
