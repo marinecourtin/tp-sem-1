@@ -213,6 +213,6 @@ if __name__ == '__main__' :
 
 	# function d'évaluation provenant des "utilisateurs" de SemDis2014
 	goldfile = 'semdis2014_lexsub_gold.txt'
-	testfile = args.outfile
+	testFile = args.outfile
 	s = semdis_eval.SemdisEvaluation(goldfile)
-	s.evaluate(testfile, measure, nonormalize)
+	s.evaluate(testFile, metric = 'all', normalize = True)
