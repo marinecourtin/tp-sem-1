@@ -65,6 +65,8 @@ def repr_sentence(sentence, c_position) :
 
 def generate_response(w2v_model, vec, pos_desired, n = 10):
 
+	if vec is None or not w2v_model : return None,None
+
 	"""
 	génération des substituants basé sur la similarité de cosinus,
 	cette fonction est adaptée de
@@ -141,7 +143,7 @@ if __name__ == '__main__' :
 
 	# hyperparamètres (à varier par la suite)
 	CIBLE_INCLUSE = True
-	F = 3
+	F = 0
 
 	fout = codecs.open(args.outfile, 'w', encoding = 'utf-8')
 
@@ -178,6 +180,7 @@ if __name__ == '__main__' :
 			# n : le nombre de mots pleins dans le contexte
 			# v_i : i-ème vecteur de mot visité pour le calcul de leur somme
 			# + : addition vectorielle
+			# print(CTX) ; exit()
 			Z = None 
 			for ctx in CTX :
 				token, pos, lemme = ctx
@@ -213,16 +216,18 @@ if __name__ == '__main__' :
 			print (u'{:>32s} {:>6s} {:>32s}'.format(u'Token',u'POS',u'Lemme'))
 			for ctx in CTX :
 				print (u'{:>32s} {:>6s} {:>32s}'.format(*ctx))
-			print (u'\n{:>20s} {:>17s}'.format(u'SUBSTITUANTS',u'SCORES'))
-			for cible, s in zip(candidats, scores) : print (u'{:>20s} {:>16.15f}'.format(cible, s))
-			print(u'\n')
 
-			# sortie fichier formaté
-			fout.write (u'{}.{} {} :: '.format(c, c_pos,id))
-			for i, cible in enumerate(candidats) :
-				fout.write(u'{}'.format(rm_pos(cible)))
-				if i < len(candidats) - 1 : fout.write(u' ; ')
-			fout.write(u'\n')
+			if candidats and scores:
+				print (u'\n{:>20s} {:>17s}'.format(u'SUBSTITUANTS',u'SCORES'))
+				for cible, s in zip(candidats, scores) : print (u'{:>20s} {:>16.15f}'.format(cible, s))
+				print(u'\n')
+
+				# sortie fichier formaté
+				fout.write (u'{}.{} {} :: '.format(c, c_pos,id))
+				for i, cible in enumerate(candidats) :
+					fout.write(u'{}'.format(rm_pos(cible)))
+					if i < len(candidats) - 1 : fout.write(u' ; ')
+				fout.write(u'\n')
 
 	# fermeture du fichier de sortie qui conient les réponses à évaluer
 	if fout : fout.flush(); fout.close()
