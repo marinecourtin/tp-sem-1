@@ -21,12 +21,23 @@
 # 7. Toute idée d’amélioration est la bienvenue
 # 8. (implémentation facultative) repas au Crous
 
+# attention : the script d'évalutaiton n'est compatible qu'avec python 2
+#             en conséqucne, notre projet code est contraint d'être développé
+#             pour python 2.
+
 import argparse, word2vec, sys, numpy, codecs
+import semdis_eval
 
 # VARIABLES GLOBALES
+
 cat_full = ['ADJ', 'NC', 'NPP', 'V', 'VINF', 'VIMP', 'VPP', 'ADV'] # POS pour les mots pleins (de Marine)
 
 # FONCTIONS
+def rm_pos(lemme_pos) :
+	if u'_' not in lemme_pos : return lemme_pos
+	tmp = lemme_pos.split(u'_')
+	return u'_'.join(tmp[0 : len(tmp) - 1])
+
 def conv_pos(pos_melt) :
 
 	"""
@@ -122,6 +133,7 @@ if __name__ == '__main__' :
 	parser = argparse.ArgumentParser(description='Analyse sémantique TP-1 : substitution lexicale')
 	parser.add_argument('infile', type=str, help='fichier de données de test : mots cibles et leurs contextes')
 	parser.add_argument('resfile', type=str, help='fichier des vecteurs de mot pré-générés via word2vec')
+	parser.add_argument('outfile', type=str, help='fichier de réponses en sortie')
 	args = parser.parse_args()
 
 	# chargement des ressources lexicales
@@ -130,6 +142,8 @@ if __name__ == '__main__' :
 	# hyperparamètres (à varier par la suite)
 	CIBLE_INCLUSE = True
 	F = 3
+
+	fout = codecs.open(args.outfile, 'w', encoding = 'utf-8')
 
 	with codecs.open(args.infile, encoding = 'utf-8') as f :
 		for line in f :
@@ -174,7 +188,7 @@ if __name__ == '__main__' :
 			# génération des substituants et leurs scores de similarités avec le contexte
 			candidats, scores = generate_response(model, Z, c_pos)
 
-			# affichage
+			# affichage pour les humains
 			print (u'instance id : {}'.format(id))
 			print (u'target token : {}'.format(c))
 			print (u'target POS : {}'.format(c_pos))
@@ -184,6 +198,21 @@ if __name__ == '__main__' :
 			for ctx in CTX :
 				print (u'{:>32s} {:>6s} {:>32s}'.format(*ctx))
 			print (u'\n{:>20s} {:>17s}'.format(u'SUBSTITUANTS',u'SCORES'))
-			for c, s in zip(candidats, scores) : print (u'{:>20s} {:>16.15f}'.format(c, s))
+			for cible, s in zip(candidats, scores) : print (u'{:>20s} {:>16.15f}'.format(cible, s))
 			print(u'\n')
 
+			# sortie fichier formaté
+			fout.write (u'{}.{} {} :: '.format(c, c_pos,id))
+			for i, cible in enumerate(candidats) :
+				fout.write(u'{}'.format(rm_pos(cible)))
+				if i < len(candidats) - 1 : fout.write(u' ; ')
+			fout.write(u'\n')
+
+	# fermeture du fichier de sortie qui conient les réponses à évaluer
+	if fout : fout.flush(); fout.close()
+
+	# function d'évaluation provenant des "utilisateurs" de SemDis2014
+	goldfile = 'semdis2014_lexsub_gold.txt'
+	testfile = args.outfile
+	s = semdis_eval.SemdisEvaluation(goldfile)
+	s.evaluate(testfile, measure, nonormalize)
