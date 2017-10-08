@@ -23,6 +23,32 @@
 #             en conséqucne, notre projet code est contraint d'être développé
 #             pour python 2.
 
+# proposition 
+# la somme des vecteurs de mot dans le contexte plein semble faire perdre 
+# plus d'informations qu'elle permet d'agréer. nous proposons de ne pas sommer
+# les vecteurs, mais conisdérer les vecteurs du contexte plein comme un ensmeble
+# de coordonnées qui permettent de localiser le bon mot cible
+#
+# note : si nous voulons traiter les vecteurs de mots dans le contexte plein comme
+# des coordonnées -> Algorithme de Gram-Schmidt est utile pour trouver 
+# les coordonnées de bonne formation (Algèbre linéaire)
+#
+# soit les vecteurs du mots pleins dans le contexte v_x1, v_x2, ..., v_xn, 
+# vx_i : i-ème vecteur du contexte plein, i in [1,n], x pour noter conte'x'te
+# vc : vecteur du mot cible
+# nous définissions un pi comme le produit scalaire entre v_xi et vc
+# pi := produit_scalair(v_xi, vc)
+# P = [p1,p2,...,pN] est une liste d'inicateur de longueur N
+# qi := produit_scalaire(v_xi, vy)
+# Q = [q1,q2,...,qN]
+# vy est un vecteur de mot dans le vocabualaire
+# 
+# la nouvelle mesure de sililarité comme
+# A. produit_scalaire(P,Q) version non-normalisée
+# B. produit_scalaire(P,Q) version normalisée
+#
+# reférence : idée est proche du "match filter" dans le domaine du traitement du signal
+
 import argparse, word2vec, sys, numpy, codecs
 import semdis_eval
 
@@ -141,7 +167,7 @@ if __name__ == '__main__' :
 
 	# hyperparamètres (à varier par la suite)
 	CIBLE_INCLUSE = True
-	F = -1
+	F = 3
 
 	fout = codecs.open(args.outfile, 'w', encoding = 'utf-8')
 
