@@ -75,7 +75,7 @@ import argparse, word2vec, sys, numpy, codecs
 import semdis_eval
 
 # VARIABLES GLOBALES
-
+dico_lemme_pos_fix = {'compris_a':'comprendre_v'}
 cat_full = ['ADJ', 'NC', 'NPP', 'V', 'VINF', 'VIMP', 'VPP', 'ADV'] # POS pour les mots pleins (de Marine)
 
 # FONCTIONS
@@ -109,7 +109,21 @@ def repr_sentence(sentence, c_position) :
 		ret += t.split(u'/')[0] + u' ' # t = [token, pos, lemme]
 	return ret
 
-def generate_response(w2v_model, vec, pos_desired, n = 10):
+def sort_response (w2v_model, candidats, Z) :
+
+	scores = []
+	scores_candidats = []
+	if numpy.linalg.norm(Z) != 0 : vec = Z / numpy.linalg.norm(Z)
+	for candidat in candidats :
+		score = numpy.dot(w2v_model[candidat], Z)
+		scores_candidats.append([score, candidat])
+	scores_candidats = sorted(scores_candidats, key=lambda x : x[0], reverse = True)
+	if scores_candidats :
+		scores    = [x[0] for x in scores_candidats]
+		candidats = [x[1] for x in scores_candidats]
+	return candidats, scores
+
+def generate_response(w2v_model, vec, pos_desired, n = 10) :
 
 	if vec is None or not w2v_model : return None,None
 
@@ -214,6 +228,7 @@ if __name__ == '__main__' :
 	# hyperparamètres (à varier par la suite)
 	CIBLE_INCLUSE = True
 	F = 3
+	n_candidats = 10
 
 	fout = codecs.open(args.outfile, 'w', encoding = 'utf-8')
 
@@ -221,6 +236,15 @@ if __name__ == '__main__' :
 		for line in f :
 			id, c, c_pos, c_position, sentence = line.split(u'\t')
 			tokens = [t.split(u'/') for t in sentence.split()]
+
+			# I. génération des substituants à partir du mot cible 'c' :
+			c_lemme_pos = c + '_' + c_pos
+			# réparation manuelle des lemmes non-renseignés ou mal rensignés
+			if c_lemme_pos in dico_lemme_pos_fix.keys() :
+				c_lemme_pos = dico_lemme_pos_fix[c_lemme_pos]
+			candidats, scores = generate_response(model, model[c_lemme_pos], c_pos, n_candidats)
+
+			# II. prétratiment du contexte
 			# filtrage des mots vides par catégorie morpho-syntaxique
 			tokens_full = []
 			j = 0
@@ -289,8 +313,13 @@ if __name__ == '__main__' :
 				except :
 					continue
 
+			# II. ordonnancement de la liste des candidats
+			#     par leur similarité avec le contexte plein représeté en
+			#     Continous Bag of Words
+
+
 			# génération des substituants et leurs scores de similarités avec le contexte
-			candidats, scores = generate_response(model, Z, c_pos)
+			candidats, scores = sort_response(model, candidats, Z)
 
 			# affichage pour les humains
 			print (u'instance id : {}'.format(id))
@@ -304,7 +333,7 @@ if __name__ == '__main__' :
 
 			if candidats and scores:
 				print (u'\n{:>20s} {:>17s}'.format(u'SUBSTITUANTS',u'SCORES'))
-				for cible, s in zip(candidats, scores) : print (u'{:>20s} {:>16.15f}'.format(cible, s))
+				for cible, score in zip(candidats, scores) : print (u'{:>20s} {:>16.15f}'.format(cible, score))
 				print(u'\n')
 
 				# sortie fichier formaté
