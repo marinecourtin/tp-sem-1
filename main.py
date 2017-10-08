@@ -9,7 +9,10 @@
 
 # todos :
 # 2. élaborer un test des hyperparamètres F, CIBLE_INCLUSES pour avoir un premier bilan -> utiliser la méthode grid search ?
-#     -> c'est-à-dire ? itérer sur une double boucle avec (F,CIBLE_INCLUSES) dans toutes les valeurs pertinentes ?
+#     L -> c'est-à-dire ? itérer sur une double boucle avec (F,CIBLE_INCLUSES) dans toutes les valeurs pertinentes ?
+#     M -> il me semble qu'il y a une fonction qui existe pour ça : from sklearn.grid_search import ParameterGrid +
+#     on a aussi l'air de pouvoir trouver automatiquement la combinaison de cesparamètres qui maximise le score,
+#     je ne sais pas si tu as déjà utilisé ça : http://scikit-learn.sourceforge.net/stable/modules/generated/sklearn.grid_search.GridSearchCV.html#sklearn.grid_search.GridSearchCV
 # 3. pondérer les vecteurs par les poids obtenus par la TF-IDF sur un corpus de français
 # 4. introduire 2-ème solution sur FREDIST : (Henestroza Anguiano & Denis, 2011) : les plus proches voisins sont déjà
 #                                  calculés, téléchargeable ici : https://gforge.inria.fr/projects/fredist/
@@ -22,23 +25,25 @@
 
 # références :
 # je nous mets deux articles ci-dessous présentant leur solution pour cette tâche, ça permet de comprendre
-# comment les chercheurs voient la chose 
+# comment les chercheurs voient la chose  -> Merci
 # [1] Melamud, O., Levy, O., Dagan, I., & Ramat-Gan, I. (2015, June). A Simple Word Embedding Model for Lexical Substitution. In VS@ HLT-NAACL (pp. 1-7).
 # [2] Desalle, Y., Navarro, E., Chudy, Y., Magistry, P., & Gaume, B. (2014). BACANAL: Balades Aléatoires Courtes pour ANAlyses Lexicales Application à la substitution lexicale. In TALN-20 2014: Atelier SEMDIS.
-# 
+#
 # pour le premier article, on voit que les mots dans le contexte ne sont jamais sommées pour faire qqch.
 # ils sont impliqués dans une métrique de manière 'non-linéaire'
 
 # demande de précisions :
 # sur la consigne, on ne voit pas très bien elle veut soit (pour le cas de FRWAC)
-# 1. on génére des canadidats à partir de l'information du vecteur du  mot cible et en ordonner la liste par 
-#    leur similarité avec son contexte plein 
+# 1. on génére des canadidats à partir de l'information du vecteur du  mot cible et en ordonner la liste par
+#    leur similarité avec son contexte plein -> M : Oui effectivement après réflexion, je pense que c'était plutôt ça
 # soit
 # 2. trouver directement les mots les plus proches du contexte plein dans le vocaubulaire
-# 
+#
 # je ne sais pas si tu vois ce que je voulais dire. en fait, j'ai implémenté 2., ça fait que mes candidats sont
-# préalablement proche du contexte. après avoir lu des articles, je pense que c'est 1 qui est mieux. je 
+# préalablement proche du contexte. après avoir lu des articles, je pense que c'est 1 qui est mieux. je
 # le corrigerai. Mais la consigne -> elle te paraît claire sur ce point-là ?
+# M : pas très clair, non. mais il me semblait bien qu'il y avait d'abord une sorte de pré-selection de candidats potentiels
+# puis ensuite seulement on compare avec le vecteur obtenu par somme des contextes
 
 
 # attention : the script d'évaluation n'est compatible qu'avec python 2
@@ -177,7 +182,7 @@ def generate_response(w2v_model, vec, pos_desired, n = 10):
 	return candidats, scores
 
 
-def generateSubstitutes(c, c_pos, n=15):
+def generateSubstitutes(c, c_pos, n=15): #surement optimisable
 	"""
 	sélectionne les candidats substituts à la cible. La fonction est basée sur
 	l'utilisation de la ressource FREDIST disponible à l'adresse :
@@ -187,7 +192,6 @@ def generateSubstitutes(c, c_pos, n=15):
 
 	"""
 	c_pos = c_pos.upper()
-	# print(c, c_pos)
 	with codecs.open("./thesauri-1.0/thesaurus_french_"+c_pos+'.txt', encoding = 'utf-8') as f :
 		for line in f:
 			line = line.split("\t")
@@ -195,7 +199,7 @@ def generateSubstitutes(c, c_pos, n=15):
 			if term == c:
 				candidats = [sub.split("|")[1] for sub in subs]
 				candidats = [can.split(":")[0] for can in candidats]
-				print(term, c, candidats)
+				# print(term, c, candidats)
 		if not candidats:
 			return None
 	return candidats
