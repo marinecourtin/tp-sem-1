@@ -20,10 +20,6 @@ def conv_pos(pos_melt) :
 	if pos_melt != 'ADV' : pos_melt = pos_melt[0]
 	return pos_melt.lower()
 
-def combine (lemme, pos) :
-
-	return unic(lemme) + u'_' + unic(conv_pos[pos])
-
 def repr_sentence(sentence, c_position) :
 
 	"""
@@ -173,4 +169,3 @@ if __name__ == '__main__' :
 			for c, s in zip(candidats, scores) : print (u'{:>20s} {:>16.15f}'.format(c, s))
 			print(u'\n')
 
-			if int(id) == 148 : exit()
