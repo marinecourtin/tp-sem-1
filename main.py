@@ -81,12 +81,11 @@ if __name__ == '__main__' :
 	# chargement des ressources lexicales
 	model = word2vec.load(args.resfile)
 
-	with codecs.open(args.outfile, 'w', encoding = 'utf-8') as fout :
-		with codecs.open(args.infile, encoding = 'utf-8') as f :
-			for CIBLE_INCLUSE in [False, True] :
-				for F in range(0, F_max) :
-					if not F and not CIBLE_INCLUSE : continue
-
+	with codecs.open(args.infile, encoding = 'utf-8') as f :
+		for CIBLE_INCLUSE in [False, True] :
+			for F in range(0, F_max) :
+				if not F and not CIBLE_INCLUSE : continue
+				with codecs.open(args.outfile, 'w', encoding = 'utf-8') as fout :
 					for line in f :
 						# lecture des cololones de fchier
 						id, c, c_pos, c_position, sentence = line.split(u'\t')
@@ -107,6 +106,7 @@ if __name__ == '__main__' :
 						if args.verbose : show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX)
 						if candidats : export_substituants (id, c, c_pos, candidats, fout)
 
+					f.seek(0)
 					# évaluation
 					print (u'(F, CIBLE_INCLUSE) = ({}, {})'.format(F, CIBLE_INCLUSE))
 					s = semdis_eval.SemdisEvaluation(args.goldfile)
