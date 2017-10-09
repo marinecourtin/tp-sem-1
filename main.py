@@ -76,8 +76,12 @@ if __name__ == '__main__' :
 	parser.add_argument('resfile', type=str, help='fichier des vecteurs de mot pré-générés via word2vec')
 	parser.add_argument('goldfile', type=str, help='fichier de réponse gold')
 	parser.add_argument('-o','--outfile', type=str, help='fichier de réponse en sortie',default = 'tmp')
-	parser.add_argument('-v','--verbose', help="increase output verbosity", action="store_true")
+	parser.add_argument('-v','--verbose', help='voir des détails en temps réel', action="store_true")
+	parser.add_argument('-r','--restype', type=int, help="le type de ressrouce lexcial employé : 0 pour FRWAC (par défault), sinon FRDIC", default = 0)
 	args = parser.parse_args()
+
+	if args.verbose :
+		print (args)
 
 	# chargement des ressources lexicales
 	model = word2vec.load(args.resfile)
@@ -88,28 +92,37 @@ if __name__ == '__main__' :
 				if not F and not CIBLE_INCLUSE : continue
 				with codecs.open(args.outfile, 'w', encoding = 'utf-8') as fout :
 					for line in f :
+
 						# lecture des cololones de fchier
 						id, c, c_pos, c_position, sentence = line.split(u'\t')
 						tokens = [t.split(u'/') for t in sentence.split()]
 
 						# géneration des substituatnts
-						candidats, scores = generateSubstitutes_w2v(model, c, c_pos, OVER_SMAPLING * n_candidats)
+						if args.restype :
+							candidats = generateSubstitutes(c, c_pos, n_candidats)
+						else :
+							candidats, scores = \
+							generateSubstitutes_w2v(model, c, c_pos, OVER_SMAPLING * n_candidats)
 
-						# préparation et nettoyage du contexte pleine
-						c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
-						CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
-						CTX = clean_ctx(CTX)
-						Z = continous_bag_words(model, CTX)
-						# ordonnancement de la liste des substituants proposés par le contexte
-						candidats, scores = sort_response(model, candidats, Z)
-						candidats         =                      candidats[0:n_candidats]
-
+							# préparation et nettoyage du contexte pleine
+							c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
+							CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
+							CTX = clean_ctx(CTX)
+							Z = continous_bag_words(model, CTX)
+							# ordonnancement de la liste des substituants proposés par le contexte
+							candidats, scores = sort_response(model, candidats, Z)
+							candidats         =                      candidats[0:n_candidats]
 						# sorties
-						if args.verbose : show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX)
-						if candidats : export_substituants (id, c, c_pos, candidats, fout)
+						if args.verbose and not args.restype :
+							show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX)
+						if candidats :
+							export_substituants (id, c, c_pos, candidats, fout)
 
 					f.seek(0)
 					# évaluation
 					print (u'(F, CIBLE_INCLUSE) = ({}, {})'.format(F, CIBLE_INCLUSE))
 					s = semdis_eval.SemdisEvaluation(args.goldfile)
 					s.evaluate(args.outfile, metric = 'all', normalize = True)
+					# pour le moment la solution basée sur FRDIC n'emploie pas le context
+					# pas intéressant de boucler avec (F, CIBLE_INCLUSE) différents
+					if args.restype : exit()
