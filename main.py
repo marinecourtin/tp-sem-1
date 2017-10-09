@@ -67,6 +67,7 @@ from lexsub import *
 # VARIABLES GLOBALES
 n_candidats = 10
 F_max = 10
+OVER_SMAPLING = 2
 
 if __name__ == '__main__' :
 
@@ -91,8 +92,8 @@ if __name__ == '__main__' :
 						id, c, c_pos, c_position, sentence = line.split(u'\t')
 						tokens = [t.split(u'/') for t in sentence.split()]
 
-						# géneration des substituatnts 
-						candidats, scores = generateSubstitutes_w2v(model, c, c_pos, n_candidats)
+						# géneration des substituatnts
+						candidats, scores = generateSubstitutes_w2v(model, c, c_pos, OVER_SMAPLING * n_candidats)
 
 						# préparation et nettoyage du contexte pleine
 						c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
@@ -101,6 +102,7 @@ if __name__ == '__main__' :
 						Z = continous_bag_words(model, CTX)
 						# ordonnancement de la liste des substituants proposés par le contexte
 						candidats, scores = sort_response(model, candidats, Z)
+						candidats         =                      candidats[0:n_candidats]
 
 						# sorties
 						if args.verbose : show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX)
