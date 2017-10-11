@@ -106,7 +106,7 @@ if __name__ == '__main__' :
 
 							# préparation et nettoyage du contexte pleine
 							c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
-							CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
+							overwindowing,CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
 							CTX = clean_ctx(CTX)
 							Z = continous_bag_words(model, CTX)
 							# ordonnancement de la liste des substituants proposés par le contexte
