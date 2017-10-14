@@ -7,7 +7,7 @@ Informatique – Univ. Paris Diderot, Marie Candito
 
 **Evaluation de vecteurs de mots par une tâche de substitution lexicale**
 
-**A rendre par mail pour le ??**:
+**A rendre par mail pour le 22 octobre 2017**:
 
 - un zip, contenant votre programme votrenomenminuscules**.py2** ou votrenomenminuscule**.py3**
 - un rapport votrenomenminuscule.pdf explicitant la tâche à effectuer, la méthode utilisée pour y parvenir, ainsi que les résultats obtenus.
