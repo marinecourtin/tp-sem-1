@@ -11,9 +11,9 @@ Informatique – Univ. Paris Diderot, Marie Candito
 
 - un zip, contenant votre programme marinecourtin_luigiliu.py2
 - un rapport marinecourtin_luigiliu.pdf explicitant 
-** la tâche à effectuer, 
-** la méthode utilisée pour y parvenir, 
-** ainsi que les résultats obtenus.
+	+ la tâche à effectuer, 
+	+ la méthode utilisée pour y parvenir, 
+	+ ainsi que les résultats obtenus.
 
 **1 La tâche de substitution lexicale SemDis 2014**
 
