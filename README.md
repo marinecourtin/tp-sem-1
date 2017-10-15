@@ -2,8 +2,9 @@
 Contains scripts for a project based on the 2014 SemDis task (lexical substitution)
 
 # consigne
-Analyse sémantique automatique du langage naturel M2 Linguistique
-Informatique – Univ. Paris Diderot, Marie Candito
+Analyse sémantique automatique du langage naturel M2 Linguistique  
+Informatique – Univ. Paris Diderot, Marie Candito  
+marie.candito@linguist.univ-paris-diderot.fr  
 
 **Evaluation de vecteurs de mots par une tâche de substitution lexicale**
 
