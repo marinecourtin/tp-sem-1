@@ -2,15 +2,19 @@
 Contains scripts for a project based on the 2014 SemDis task (lexical substitution)
 
 # consigne
-Analyse sémantique automatique du langage naturel M2 Linguistique
-Informatique – Univ. Paris Diderot, Marie Candito
+Analyse sémantique automatique du langage naturel M2 Linguistique  
+Informatique – Univ. Paris Diderot, Marie Candito  
+marie.candito@linguist.univ-paris-diderot.fr  
 
 **Evaluation de vecteurs de mots par une tâche de substitution lexicale**
 
 **A rendre par mail pour le 22 octobre 2017**:
 
-- un zip, contenant votre programme votrenomenminuscules**.py2** ou votrenomenminuscule**.py3**
-- un rapport votrenomenminuscule.pdf explicitant la tâche à effectuer, la méthode utilisée pour y parvenir, ainsi que les résultats obtenus.
+- un zip, contenant votre programme marinecourtin_luigiliu.py2
+- un rapport marinecourtin_luigiliu.pdf explicitant 
+	+ la tâche à effectuer, 
+	+ la méthode utilisée pour y parvenir, 
+	+ ainsi que les résultats obtenus.
 
 **1 La tâche de substitution lexicale SemDis 2014**
 
