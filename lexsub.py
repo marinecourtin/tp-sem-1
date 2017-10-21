@@ -2,7 +2,7 @@
 import argparse, word2vec, sys, numpy, codecs
 
 dico_lemme_pos_fix = {'compris_a':'comprendre_v'}
-cat_full = ['ADJ', 'NC', 'NPP', 'V', 'VINF', 'VIMP', 'VPP', 'ADV'] # POS pour les mots pleins (de Marine)
+cat_full = ['ADJ', 'NC', 'NPP', 'V', 'VINF', 'VIMP', 'VPP', 'ADV'] # POS pour les mots pleins
 
 def rm_pos(lemme_pos) :
 	if u'_' not in lemme_pos :
@@ -62,7 +62,7 @@ def generateSubstitutes_w2v(w2v_model, c_lemme, c_pos, n = 10) :
 	vec = w2v_model[c_lemme_pos]
 	if vec is None : return None, None
 	"""
-	génération des substituants basé sur la similarité de cosinus,
+	génération des substituts basée sur la similarité de cosinus,
 	cette fonction est adaptée de
 	model.cosine() et model.generate_response() provenant du script
 	https://github.com/danielfrg/word2vec/blob/master/word2vec/wordvectors.py
@@ -108,7 +108,7 @@ def generateSubstitutes_w2v(w2v_model, c_lemme, c_pos, n = 10) :
 	indexes_best = numpy.argsort(metrics)[::-1][1:]
 
 	# sélectionner les n meilleures candidats selon la métrique de cosinus
-	# les candidats doivent la catégorie POS spécifié par 'pos_desired'
+	# les candidats doivent avoir la catégorie POS spécifié par 'pos_desired'
 	cnt = 0
 	candidats = []
 	scores = []
@@ -182,7 +182,7 @@ def clean_ctx (CTX) :
 		# suppression de '*' dans les lemmes
 		lemmes = lemmes.replace(u'*',u'')
 
-		# traitier l'ambiguiïté dans les lemmes
+		# traiter l'ambiguiïté dans les lemmes
 		if u'|' in lemmes :
 			for lemme in lemmes.split(u'|') :
 				if lemme :
@@ -202,7 +202,7 @@ def continous_bag_words (w2v_model, CTX) :
 				# comme ça Z est typé comme un vecteur
 				Z = w2v_model[lemme_pos]
 			else :
-				# une fois initiation faite, on accumule des vecteurs par
+				# une fois l'initialisation faite, on accumule des vecteurs par
 				# l'addition vectorielle ou pointwise addition
 				#
 				# note: lorsque le symbole + et utilisé comme un opérateur binaire
@@ -230,4 +230,3 @@ def show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX):
 	print (u'{:>32s} {:>6s} {:>32s}'.format(u'Token',u'POS',u'Lemme'))
 	for ctx in CTX :
 		print (u'{:>32s} {:>6s} {:>32s}'.format(*ctx))
-
