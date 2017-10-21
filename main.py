@@ -89,7 +89,7 @@ if __name__ == '__main__' :
 						if args.verbose :
 							show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX, args.restype == 1)
 							print('candidats de substituant proposés : ')
-							for i, c in enumerate(candidats) : print(u'\t{} : {}'.format(i, c))
+							for i, cand in enumerate(candidats) : print(u'\t{} : {}'.format(i, cand))
 						if candidats :
 							export_substituants (id, c, c_pos, candidats, fout)
 
