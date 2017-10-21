@@ -98,17 +98,45 @@ if __name__ == '__main__' :
 						tokens = [t.split(u'/') for t in sentence.split()]
 
 						# géneration des substituts potentiels
-						if args.restype == '1':
+						if args.restype == 1:
 							candidats = generateSubstitutes(c, c_pos, n_candidats)
-						elif args.restype == '2':
+						elif args.restype == 2:
 							# on prend les 100 premiers résultats dans FREDIST comme substituts potentiels
+							# nb de substituts choisi arbitraire
 							candidats = generateSubstitutes(c, c_pos, 100)
-							# TO ADD
-							# utilisation dans candidats pour chercher la similarite cosinus entre la cible et
-							# les candidats en utilisant les vecteurs obtenus avec word2vec et pre-entraines par J.P Fauconnier
+							try:
+								candidats = [candidat+"_"+c_pos for candidat in candidats]
+							except TypeError: #cible pas dans FREDIST, on retombe sur r = 0
+								candidats, scores = \
+								generateSubstitutes_w2v(model, c, c_pos, OVER_SAMPLING * n_candidats)
+
+								# préparation et nettoyage du contexte plein
+								c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
+								overwindowing,CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
+								CTX = clean_ctx(CTX)
+								Z = continous_bag_words(model, CTX)
+								# ordonnancement de la liste des substituts proposés par le contexte
+								candidats, scores = sort_response(model, candidats, Z)
+								candidats = candidats[0:n_candidats]
+							else:
+								# print(candidats)
+								candidats, scores = \
+								generateSubstitutes_hybrid(model, c, c_pos, candidats, OVER_SAMPLING * n_candidats)
+								# TO ADD
+								# utilisation des candidats pour chercher la similarite cosinus entre la cible et
+								# les candidats en utilisant les vecteurs obtenus avec word2vec et pre-entraines par J.P Fauconnier
+
+								# préparation et nettoyage du contexte plein
+								c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
+								overwindowing,CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
+								CTX = clean_ctx(CTX)
+								Z = continous_bag_words(model, CTX)
+								# ordonnancement de la liste des substituts proposés par le contexte
+								candidats, scores = sort_response(model, candidats, Z)
+								candidats = candidats[0:n_candidats]
 						else :
 							candidats, scores = \
-							generateSubstitutes_w2v(model, c, c_pos, OVER_SMAPLING * n_candidats)
+							generateSubstitutes_w2v(model, c, c_pos, OVER_SAMPLING * n_candidats)
 
 							# préparation et nettoyage du contexte plein
 							c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
@@ -117,7 +145,7 @@ if __name__ == '__main__' :
 							Z = continous_bag_words(model, CTX)
 							# ordonnancement de la liste des substituts proposés par le contexte
 							candidats, scores = sort_response(model, candidats, Z)
-							candidats         =                      candidats[0:n_candidats]
+							candidats = candidats[0:n_candidats]
 						# sorties
 						if args.verbose and not args.restype :
 							show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX)

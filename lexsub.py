@@ -59,7 +59,7 @@ def generateSubstitutes_w2v(w2v_model, c_lemme, c_pos, n = 10) :
 	if c_lemme_pos in dico_lemme_pos_fix.keys() :
 		c_lemme_pos = dico_lemme_pos_fix[c_lemme_pos]
 
-	vec = w2v_model[c_lemme_pos]
+	vec = w2v_model[c_lemme_pos] #vecteur du lemme cible
 	if vec is None : return None, None
 	"""
 	génération des substituts basée sur la similarité de cosinus,
@@ -124,6 +124,41 @@ def generateSubstitutes_w2v(w2v_model, c_lemme, c_pos, n = 10) :
 
 	return candidats, scores
 
+def generateSubstitutes_hybrid(w2v_model, c_lemme, c_pos, potential_substitutes, n) :
+	"""
+	presque identique à generateSubstitutes_w2v
+	Au lieu de calculer toutes les distances cosinus, on calcule uniquement
+	celles entre le vecteur de contexte et les vecteurs de mots associés à la
+	cible dans FREDIST
+	"""
+	c_lemme_pos = c_lemme + u'_' + c_pos
+	if c_lemme_pos in dico_lemme_pos_fix.keys() :
+		c_lemme_pos = dico_lemme_pos_fix[c_lemme_pos]
+
+	vec = w2v_model[c_lemme_pos] #vecteur du lemme cible
+	if vec is None : return None, None
+	if numpy.linalg.norm(vec) != 0 : vec = vec / numpy.linalg.norm(vec)
+	potential_substitutes = [word for word in potential_substitutes if word in w2v_model.vocab]
+	metrics = [numpy.dot(w2v_model[word], vec) for word in potential_substitutes]
+	indexes_best = numpy.argsort(metrics)[::-1][1:]
+
+	# sélectionner les n meilleures candidats selon la métrique de cosinus
+	# les candidats doivent avoir la catégorie POS spécifié par 'pos_desired'
+	cnt = 0
+	candidats = []
+	scores = []
+	for cursor, i in enumerate(indexes_best) :
+		word_pos = w2v_model.vocab[i]
+		# ex: word_pos = 'intéresser_v' -> pos = 'v'
+		pos = word_pos.split('_')[-1]
+		if pos == c_pos :
+			candidats.append(w2v_model.vocab[i])
+			scores.append(metrics[i])
+			cnt += 1
+			if cnt == n : break # on ne prend que les n meilleurs
+
+	return candidats, scores
+
 def generateSubstitutes(c, c_pos, n=15): #surement optimisable
 	"""
 	sélectionne les candidats substituts à la cible. La fonction est basée sur
@@ -133,12 +168,14 @@ def generateSubstitutes(c, c_pos, n=15): #surement optimisable
 	output : liste des n candidats les plus similaires
 
 	"""
+	candidats = None
 	c_pos = c_pos.upper()
 	with codecs.open("./thesauri-1.0/thesaurus_french_"+c_pos+'.txt', encoding = 'utf-8') as f :
 		for line in f:
 			line = line.split("\t")
 			term, subs = (line[0].split("|")[1], line[1:][:n])
 			if term == c:
+				print(term)
 				candidats = [sub.split("|")[1] for sub in subs]
 				candidats = [can.split(":")[0] for can in candidats]
 				# print(term, c, candidats)
