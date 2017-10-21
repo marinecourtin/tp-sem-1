@@ -45,8 +45,9 @@ def sort_response (w2v_model, candidats, Z) :
 
 	if numpy.linalg.norm(Z) != 0 : vec = Z / numpy.linalg.norm(Z)
 	for candidat in candidats :
-		score = numpy.dot(w2v_model[candidat], Z)
-		scores_candidats.append([score, candidat])
+		if candidat in w2v_model.vocab :
+			score = numpy.dot(w2v_model[candidat], Z)
+			scores_candidats.append([score, candidat])
 	scores_candidats = sorted(scores_candidats, key=lambda x : x[0], reverse = True)
 	if scores_candidats :
 		scores    = [x[0] for x in scores_candidats]
@@ -124,18 +125,14 @@ def generateSubstitutes_w2v(w2v_model, c_lemme, c_pos, n = 10) :
 
 	return candidats, scores
 
-def generateSubstitutes_hybrid(w2v_model, c_lemme, c_pos, potential_substitutes, n) :
+def generateSubstitutes_hybrid(w2v_model, vec, c_pos, potential_substitutes, n) :
 	"""
 	presque identique à generateSubstitutes_w2v
 	Au lieu de calculer toutes les distances cosinus, on calcule uniquement
 	celles entre le vecteur de contexte et les vecteurs de mots associés à la
 	cible dans FREDIST
 	"""
-	c_lemme_pos = c_lemme + u'_' + c_pos
-	if c_lemme_pos in dico_lemme_pos_fix.keys() :
-		c_lemme_pos = dico_lemme_pos_fix[c_lemme_pos]
 
-	vec = w2v_model[c_lemme_pos] #vecteur du lemme cible
 	if vec is None : return None, None
 	if numpy.linalg.norm(vec) != 0 : vec = vec / numpy.linalg.norm(vec)
 	potential_substitutes = [word for word in potential_substitutes if word in w2v_model.vocab]
@@ -159,7 +156,7 @@ def generateSubstitutes_hybrid(w2v_model, c_lemme, c_pos, potential_substitutes,
 
 	return candidats, scores
 
-def generateSubstitutes(c, c_pos, n=15): #surement optimisable
+def generateSubstitutes(c, c_pos, n=-1): #surement optimisable
 	"""
 	sélectionne les candidats substituts à la cible. La fonction est basée sur
 	l'utilisation de la ressource FREDIST disponible à l'adresse :
@@ -173,9 +170,12 @@ def generateSubstitutes(c, c_pos, n=15): #surement optimisable
 	with codecs.open("./thesauri-1.0/thesaurus_french_"+c_pos+'.txt', encoding = 'utf-8') as f :
 		for line in f:
 			line = line.split("\t")
-			term, subs = (line[0].split("|")[1], line[1:][:n])
+			if n >= 0:
+				term, subs = (line[0].split("|")[1], line[1:][:n])
+			else : # n < 0, on prend tout
+				term, subs = (line[0].split("|")[1], line[1:])
 			if term == c:
-				print(term)
+				# print(term)
 				candidats = [sub.split("|")[1] for sub in subs]
 				candidats = [can.split(":")[0] for can in candidats]
 				# print(term, c, candidats)
@@ -258,12 +258,13 @@ def export_substituants (id, c, c_pos, candidats, fidout) :
 		if i < len(candidats) - 1 : fidout.write(u' ; ')
 	fidout.write(u'\n')
 
-def show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX):
+def show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX, simple_ver = False):
 	print (u'instance id : {}'.format(id))
 	print (u'target token : {}'.format(c))
 	print (u'target POS : {}'.format(c_pos))
 	print (u'full sentence : \n\t{}'.format(repr_sentence(sentence, c_position)))
-	print (u'\nCTX(F = {}, CIBLE_INCLUSE = {}) : '.format(F, CIBLE_INCLUSE))
-	print (u'{:>32s} {:>6s} {:>32s}'.format(u'Token',u'POS',u'Lemme'))
-	for ctx in CTX :
-		print (u'{:>32s} {:>6s} {:>32s}'.format(*ctx))
+	if not simple_ver :
+		print (u'\nCTX(F = {}, CIBLE_INCLUSE = {}) : '.format(F, CIBLE_INCLUSE))
+		print (u'{:>32s} {:>6s} {:>32s}'.format(u'Token',u'POS',u'Lemme'))
+		for ctx in CTX :
+			print (u'{:>32s} {:>6s} {:>32s}'.format(*ctx))
