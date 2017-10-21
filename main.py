@@ -6,61 +6,19 @@
 
 # auteurs
 # Marine Courtin (Université Paris Sorbonne Nouvelle)
-# Luigi Liu (Université Paris Nanterre, MoDyCo)
+# Luigi Liu (Université Paris Nanterre, Laboratoire MoDyCo)
 
 # todos :
-# 2. élaborer un test des hyperparamètres F, CIBLE_INCLUSES pour avoir un premier bilan -> utiliser la méthode grid search ?
-#     L -> c'est-à-dire ? itérer sur une double boucle avec (F,CIBLE_INCLUSES) dans toutes les valeurs pertinentes ?
-#     M -> il me semble qu'il y a une fonction qui existe pour ça : from sklearn.grid_search import ParameterGrid +
-#     on a aussi l'air de pouvoir trouver automatiquement la combinaison de cesparamètres qui maximise le score,
-#     je ne sais pas si tu as déjà utilisé ça : http://scikit-learn.sourceforge.net/stable/modules/generated/sklearn.grid_search.GridSearchCV.html#sklearn.grid_search.GridSearchCV
-#     L -> ça peut être utile : deux limites, tout de même.
-#          1. dépendence de la bibliothéque sklearn
-#          2. on veux aussi observer la courbe score(F,CIBLE_INCLUSE) pour mieux comprendre la tâche
-#          le code a été refactorisé pour que tu puisses appliquer plus facilement gridsearch -> donc, allez y !
-#
-# 3. pondérer les vecteurs par les poids obtenus par la TF-IDF sur un corpus de français
-# 4. introduire 2-ème solution sur FREDIST : (Henestroza Anguiano & Denis, 2011) : les plus proches voisins sont déjà
-#                                  calculés, téléchargeable ici : https://gforge.inria.fr/projects/fredist/
-# 7. rapport écrit suivant la consigne :
+# 1. rapport en Markdown :
 # 	Vous ferez un petit rapport réexpliquant la tâche, la méthode, et commentant vos résultats.
-# 	Votre programme doit contenir une aide en ligne (l’option –h doit indiquer comment utiliser le
-# 	programme).
-# 8. Toute idée d’amélioration est la bienvenue
-# 9. (implémentation facultative) repas au Crous
+# 	Votre programme doit contenir une aide en ligne (l’option –h doit indiquer comment utiliser le programme).
 
 # références :
 # [1] Melamud, O., Levy, O., Dagan, I., & Ramat-Gan, I. (2015, June). A Simple Word Embedding Model for Lexical Substitution. In VS@ HLT-NAACL (pp. 1-7).
 # [2] Desalle, Y., Navarro, E., Chudy, Y., Magistry, P., & Gaume, B. (2014). BACANAL: Balades Aléatoires Courtes pour ANAlyses Lexicales Application à la substitution lexicale. In TALN-20 2014: Atelier SEMDIS.
 #
 
-# proposition
-# la somme des vecteurs de mot dans le contexte plein semble faire perdre
-# plus d'informations qu'elle permet d'agréer. nous proposons de ne pas sommer
-# les vecteurs, mais conisdérer les vecteurs du contexte plein comme un ensemble
-# de coordonnées qui permettent de localiser le bon mot cible
-#
-# note : si nous voulons traiter les vecteurs de mots dans le contexte plein comme
-# des coordonnées -> Algorithme de Gram-Schmidt est utile pour trouver
-# les coordonnées de bonne formation (Algèbre linéaire)
-#
-# soit les vecteurs du mots pleins dans le contexte v_x1, v_x2, ..., v_xn,
-# vx_i : i-ème vecteur du contexte plein, i in [1,n], x pour noter conte'x'te
-# vc : vecteur du mot cible
-# nous définissions un pi comme le produit scalaire entre v_xi et vc
-# pi := produit_scalair(v_xi, vc)
-# P = [p1,p2,...,pN] est une liste d'inicateur de longueur N
-# qi := produit_scalaire(v_xi, vy)
-# Q = [q1,q2,...,qN]
-# vy est un vecteur de mot dans le vocabualaire
-#
-# la nouvelle mesure de sililarité comme
-# A. produit_scalaire(P,Q) version non-normalisée
-# B. produit_scalaire(P,Q) version normalisée
-#
-# reférence : idée est proche du "match filter" dans le domaine du traitement du signal
-
-import argparse, word2vec, sys, numpy, codecs
+import argparse, word2vec, sys, numpy, codecs, time
 import semdis_eval
 from lexsub import *
 
@@ -89,6 +47,7 @@ if __name__ == '__main__' :
 	with codecs.open(args.infile, encoding = 'utf-8') as f :
 		for CIBLE_INCLUSE in [False, True] :
 			for F in range(0, F_max) :
+				t = time.time()
 				if not F and not CIBLE_INCLUSE : continue
 				with codecs.open(args.outfile, 'w', encoding = 'utf-8') as fout :
 					for line in f :
@@ -97,58 +56,40 @@ if __name__ == '__main__' :
 						id, c, c_pos, c_position, sentence = line.split(u'\t')
 						tokens = [t.split(u'/') for t in sentence.split()]
 
+						# préparation et nettoyage du contexte plein
+                                                c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
+                                                overwindowing,CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
+                                                CTX = clean_ctx(CTX)
+                                                Z = continous_bag_words(model, CTX)
+
 						# géneration des substituts potentiels
 						if args.restype == 1:
 							candidats = generateSubstitutes(c, c_pos, n_candidats)
 						elif args.restype == 2:
 							# on prend les 100 premiers résultats dans FREDIST comme substituts potentiels
 							# nb de substituts choisi arbitraire
-							candidats = generateSubstitutes(c, c_pos, 100)
-							try:
-								candidats = [candidat+"_"+c_pos for candidat in candidats]
+							candidats = generateSubstitutes(c, c_pos)
+							try: #équivalent à la condition 'if candidats == None :'
+								candidats = [candidat + u"_" + c_pos for candidat in candidats]
 							except TypeError: #cible pas dans FREDIST, on retombe sur r = 0
 								candidats, scores = \
 								generateSubstitutes_w2v(model, c, c_pos, OVER_SAMPLING * n_candidats)
 
-								# préparation et nettoyage du contexte plein
-								c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
-								overwindowing,CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
-								CTX = clean_ctx(CTX)
-								Z = continous_bag_words(model, CTX)
-								# ordonnancement de la liste des substituts proposés par le contexte
-								candidats, scores = sort_response(model, candidats, Z)
-								candidats = candidats[0:n_candidats]
-							else:
-								# print(candidats)
-								candidats, scores = \
-								generateSubstitutes_hybrid(model, c, c_pos, candidats, OVER_SAMPLING * n_candidats)
-								# TO ADD
-								# utilisation des candidats pour chercher la similarite cosinus entre la cible et
-								# les candidats en utilisant les vecteurs obtenus avec word2vec et pre-entraines par J.P Fauconnier
-
-								# préparation et nettoyage du contexte plein
-								c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
-								overwindowing,CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
-								CTX = clean_ctx(CTX)
-								Z = continous_bag_words(model, CTX)
-								# ordonnancement de la liste des substituts proposés par le contexte
-								candidats, scores = sort_response(model, candidats, Z)
-								candidats = candidats[0:n_candidats]
+							candidats, scores = sort_response(model, candidats, Z)
+							candidats = candidats[0 : n_candidats]
 						else :
 							candidats, scores = \
 							generateSubstitutes_w2v(model, c, c_pos, OVER_SAMPLING * n_candidats)
 
-							# préparation et nettoyage du contexte plein
-							c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
-							overwindowing,CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
-							CTX = clean_ctx(CTX)
-							Z = continous_bag_words(model, CTX)
 							# ordonnancement de la liste des substituts proposés par le contexte
 							candidats, scores = sort_response(model, candidats, Z)
-							candidats = candidats[0:n_candidats]
+							candidats = candidats[0 : n_candidats]
+
 						# sorties
-						if args.verbose and not args.restype :
-							show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX)
+						if args.verbose :
+							show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX, args.restype == 1)
+							print('candidats de substituant proposés : ')
+							for i, c in enumerate(candidats) : print(u'\t{} : {}'.format(i, c))
 						if candidats :
 							export_substituants (id, c, c_pos, candidats, fout)
 
@@ -159,4 +100,5 @@ if __name__ == '__main__' :
 					s.evaluate(args.outfile, metric = 'all', normalize = True)
 					# pour le moment la solution basée sur FRDIC n'emploie pas le contexte
 					# pas intéressant de boucler avec (F, CIBLE_INCLUSE) différents
-					if args.restype : exit()
+					print ('Temps découlé / boucle de hyperparamètres',time.time() - t)
+					if args.restype == 1 : exit()
