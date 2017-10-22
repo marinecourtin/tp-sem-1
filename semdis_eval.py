@@ -48,6 +48,8 @@ class SemdisEvaluation(object):
                 normalizationMapping[lexeltId][proposedForm] = normalizedForm
         return normalizationMapping
 
+    def parseGoldStandard(self): return self.__parseGoldStandard()
+
     def __parseGoldStandard(self):
         goldDict = {}
         sumAnswerDict = {}
