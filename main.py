@@ -3,6 +3,12 @@
 
 # Prérequis :
 # pip install Cython word2vec
+# la ressource de thésaurus indiqué doit être placé dans
+# le repetoire thesauri-1.0/
+# 	thesaurus_french_A.txt
+# 	thesaurus_french_N.txt
+# 	thesaurus_french_V.txt
+# 	thesaurus_french_ADV.txt
 
 # Auteurs
 #
@@ -19,7 +25,7 @@ from lexsub import *
 # VARIABLES GLOBALES
 n_candidats = 10
 F_max = 6
-OVER_SAMPLING = 1
+OVER_SAMPLING = 100
 
 if __name__ == '__main__' :
 
