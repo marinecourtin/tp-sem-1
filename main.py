@@ -4,9 +4,12 @@
 # Prérequis :
 # pip install Cython word2vec
 
-# auteurs
-# Marine Courtin (Université Paris Sorbonne Nouvelle)
-# Luigi Liu (Université Paris Nanterre)
+# Auteurs
+# Marine Courtin, Université Sorbonne Nouvelle
+# marine.courtin@etud.sorbonne-nouvelle.fr
+#
+# Luigi Liu, Université Paris Nanterre
+# luigi.plurital@gmail.com
 
 # todos :
 # 1. + expension sémantique
