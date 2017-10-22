@@ -6,10 +6,11 @@
 
 # auteurs
 # Marine Courtin (Université Paris Sorbonne Nouvelle)
-# Luigi Liu (Université Paris Nanterre, Laboratoire MoDyCo)
+# Luigi Liu (Université Paris Nanterre)
 
 # todos :
-# 1. rapport en Markdown :
+# 1. + expension sémantique
+# 2. rapport en Markdown :
 # 	Vous ferez un petit rapport réexpliquant la tâche, la méthode, et commentant vos résultats.
 # 	Votre programme doit contenir une aide en ligne (l’option –h doit indiquer comment utiliser le programme).
 
@@ -100,5 +101,5 @@ if __name__ == '__main__' :
 					s.evaluate(args.outfile, metric = 'all', normalize = True)
 					# pour le moment la solution basée sur FRDIC n'emploie pas le contexte
 					# pas intéressant de boucler avec (F, CIBLE_INCLUSE) différents
-					print ('Temps découlé / boucle de hyperparamètres',time.time() - t)
+					print "... done in", get_duration(t1_secs = t, t2_secs = time.time())
 					if args.restype == 1 : exit()
