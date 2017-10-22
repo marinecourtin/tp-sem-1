@@ -51,7 +51,7 @@ if __name__ == '__main__' :
 	with codecs.open(args.infile, encoding = 'utf-8') as f :
 		for CIBLE_INCLUSE in [False, True] :
 			for F in range(0, F_max) :
-				t = time.time()
+				t1 = time.time()
 				if not F and not CIBLE_INCLUSE : continue
 				with codecs.open(args.outfile, 'w', encoding = 'utf-8') as fout :
 					for line in f :
@@ -104,5 +104,5 @@ if __name__ == '__main__' :
 					s.evaluate(args.outfile, metric = 'all', normalize = True)
 					# pour le moment la solution basée sur FRDIC n'emploie pas le contexte
 					# pas intéressant de boucler avec (F, CIBLE_INCLUSE) différents
-					print "... done in", get_duration(t1_secs = t, t2_secs = time.time())
+					print "La dernière bouclee s'est terminée en", get_duration(t1_secs = t1, t2_secs = time.time())
 					if args.restype == 1 : exit()

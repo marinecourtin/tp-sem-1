@@ -4,6 +4,14 @@ import argparse, word2vec, sys, numpy, codecs
 dico_lemme_pos_fix = {'compris_a':'comprendre_v'}
 cat_full = ['ADJ', 'NC', 'NPP', 'V', 'VINF', 'VIMP', 'VPP', 'ADV'] # POS pour les mots pleins
 
+def get_duration(t1_secs, t2_secs) :
+	secs = abs(t1_secs - t2_secs)
+	days = secs // 86400
+	hours = secs // 3600 - days * 24
+	minutes = secs // 60 - hours * 60 - days * 60 * 24
+	secondes = int(secs) % 60
+	return '{:>02.0f}:{:>02.0f}:{:>02.0f}:{:>02d}'.format(days, hours, minutes, secondes)
+
 def rm_pos(lemme_pos) :
 	if u'_' not in lemme_pos :
 		return lemme_pos
