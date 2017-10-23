@@ -25,7 +25,7 @@ from lexsub import *
 # VARIABLES GLOBALES
 n_candidats = 10
 F_max = 6
-OVER_SAMPLING = 100
+OVER_SAMPLING = 40
 
 if __name__ == '__main__' :
 
@@ -41,73 +41,76 @@ if __name__ == '__main__' :
 	if args.verbose :
 		print (args)
 
-	# chargement des ressources lexicales
-	model = word2vec.load(args.resfile)
+	for restype in [0,1,2,3] : # restype = args.restype habituellement, condition suspendue pour le test exhautif
+		# chargement des ressources lexicales
+		model = word2vec.load(args.resfile)
 
-	with codecs.open(args.infile, encoding = 'utf-8') as f :
-		for CIBLE_INCLUSE in [False, True] :
-			for F in range(0, F_max) :
-				t1 = time.time()
-				if not F and not CIBLE_INCLUSE : continue
-				with codecs.open(args.outfile, 'w', encoding = 'utf-8') as fout :
-					for line in f :
+		with codecs.open(args.infile, encoding = 'utf-8') as f :
+			for i_CIBLE_INCLUSE, CIBLE_INCLUSE in enumerate([False, True]) :
+				for i_F, F in enumerate(range(-1, F_max)) :
+					t1 = time.time()
+					if not F and not CIBLE_INCLUSE : continue
+					with codecs.open(args.outfile, 'w', encoding = 'utf-8') as fout :
+						for line in f :
 
-						# lecture des colonnes de fichier
-						id, c, c_pos, c_position, sentence = line.split(u'\t')
-						tokens = [t.split(u'/') for t in sentence.split()]
+							# lecture des colonnes de fichier
+							id, c, c_pos, c_position, sentence = line.split(u'\t')
+							tokens = [t.split(u'/') for t in sentence.split()]
 
-						# préparation et nettoyage du contexte plein
-                                                c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
-                                                overwindowing,CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
-                                                CTX = clean_ctx(CTX)
+							# préparation et nettoyage du contexte plein
+	                                                c_position_new, tokens_full = rm_stopword_from_tokens(tokens, cat_full, c_position)
+	                                                overwindowing,CTX = windowing (tokens_full, c_position_new, F, CIBLE_INCLUSE)
+	                                                CTX = clean_ctx(CTX)
 
-						# a. transformer tous les mots dans CTX en vecteurs dont la liste retournée est E
-                                                Z = continous_bag_words(model, CTX)
+							# a. transformer tous les mots dans CTX en vecteurs dont la liste retournée est E
+	                                                Z = continous_bag_words(model, CTX)
 
-						# géneration des substituts potentiels
-						if args.restype == 1:
-							candidats = generateSubstitutes(c, c_pos, n_candidats)
-						elif args.restype == 2:
-							# on prend les 100 premiers résultats dans FREDIST comme substituts potentiels
-							# nb de substituts choisi arbitraire
-							candidats = generateSubstitutes(c, c_pos)
-							try: #équivalent à la condition 'if candidats == None :'
-								candidats = [candidat + u"_" + c_pos for candidat in candidats]
-							except TypeError: #cible pas dans FREDIST, on retombe sur r = 0
+							# géneration des substituts potentiels
+							if restype == 1:
+								candidats = generateSubstitutes(c, c_pos, n_candidats)
+							elif restype == 2:
+								# on prend les 100 premiers résultats dans FREDIST comme substituts potentiels
+								# nb de substituts choisi arbitraire
+								candidats = generateSubstitutes(c, c_pos)
+								try: #équivalent à la condition 'if candidats == None :'
+									candidats = [candidat + u"_" + c_pos for candidat in candidats]
+								except TypeError: #cible pas dans FREDIST, on retombe sur r = 0
+									candidats, scores = \
+									generateSubstitutes_w2v(model, c, c_pos, OVER_SAMPLING * n_candidats)
+
+								candidats, scores = sort_response(model, candidats, Z)
+								candidats = candidats[0 : n_candidats]
+							elif restype == 3 :
+
+								# nouvelle proposition basée sur les ressources word2vec
+								candidats, scores = gen_subs_new (model, CTX, c, c_pos, n = 10)
+
+							else : # i.e. args.restype == 0
+
 								candidats, scores = \
 								generateSubstitutes_w2v(model, c, c_pos, OVER_SAMPLING * n_candidats)
 
-							candidats, scores = sort_response(model, candidats, Z)
-							candidats = candidats[0 : n_candidats]
-						elif args.restype == 3 :
-
-							# nouvelle proposition basée sur les ressources word2vec
-							candidats, scores = gen_subs_new (model, CTX, c, c_pos, n = 10)
-
-						else : # i.e. args.restype == 0
-
-							candidats, scores = \
-							generateSubstitutes_w2v(model, c, c_pos, OVER_SAMPLING * n_candidats)
-
-							# ordonnancement de la liste des substituts proposés par le contexte
-							candidats, scores = sort_response(model, candidats, Z)
-							candidats = candidats[0 : n_candidats]
+								# ordonnancement de la liste des substituts proposés par le contexte
+								candidats, scores = sort_response(model, candidats, Z)
+								candidats = candidats[0 : n_candidats]
 
 
-						# sorties
-						if args.verbose :
-							show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX, args.restype == 1)
-							print('candidats de substituant proposés : ')
-							for i, cand in enumerate(candidats) : print(u'\t{} : {}'.format(i, cand))
-						if candidats :
-							export_substituants (id, c, c_pos, candidats, fout)
+							# sorties
+							if args.verbose :
+								show_infobox (id, c, c_pos, c_position, sentence, F, CIBLE_INCLUSE, CTX, restype == 1)
+								print('candidats de substituant proposés : ')
+								for i, cand in enumerate(candidats) : print(u'\t{} : {}'.format(i, cand))
+							if candidats :
+								export_substituants (id, c, c_pos, candidats, fout)
 
-					f.seek(0)
-					# évaluation
-					print (u'(F, CIBLE_INCLUSE) = ({}, {})'.format(F, CIBLE_INCLUSE))
-					s = semdis_eval.SemdisEvaluation(args.goldfile)
-					s.evaluate(args.outfile, metric = 'all', normalize = True)
-					# pour le moment la solution basée sur FRDIC n'emploie pas le contexte
-					# pas intéressant de boucler avec (F, CIBLE_INCLUSE) différents
-					print u"La dernière bouclee s'est terminée en", get_duration(t1_secs = t1, t2_secs = time.time())
-					if args.restype == 1 : exit()
+						f.seek(0)
+						# évaluation
+						if r == 0 : print (u'OVERSAMPLING RATE : {}'.format(OVER_SAMPLING))
+						print (u'(MÉTHODE, F, CIBLE_INCLUSE) = ({}, {}, {})'.format(restype, F, CIBLE_INCLUSE))
+						s = semdis_eval.SemdisEvaluation(args.goldfile)
+						s.evaluate(args.outfile, metric = 'all', normalize = True)
+						# pour le moment la solution basée sur FRDIC n'emploie pas le contexte
+						# pas intéressant de boucler avec (F, CIBLE_INCLUSE) différents
+						print u"La dernière bouclee s'est terminée en", get_duration(t1_secs = t1, t2_secs = time.time())
+						if restype == 1 :
+							if i_CIBLE_INCLUSE or i_F : continue
