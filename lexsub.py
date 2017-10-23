@@ -98,8 +98,8 @@ def sel_cand_new (model, candidats, CTX, c_lemme, c_pos, n = -1) :
 		if c_lemme in lem :
 			i_c.append(i)
 	"""
-	ret_candidats = [candidats[i] for i in indexes_best]
-	ret_scores = [metrics[i] for i in indexes_best]
+	ret_candidats = [candidats[i] for i in indexes_best[:n]]
+	ret_scores = [metrics[i] for i in indexes_best[:n]]
 	return ret_candidats, ret_scores
 
 def generateSubstitutes_w2v(w2v_model, c_lemme, c_pos, n = 10) :

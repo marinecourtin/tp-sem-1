@@ -39,9 +39,15 @@ if __name__ == '__main__' :
       method = args.method
       OVER_SAMPLING = args.oversample
       # chargement des ressources lexicales
-      model = word2vec.load(args.resfile1)
-      dicos = get_dicos_from_thesaurus(resfolder = args.resfolder2)
-      print('initialisation du thésaurus en dictionnaires !')
+      if method == 0 or method == 3 : # pas de thésaurus
+            model = word2vec.load(args.resfile1)
+            dicos = dict()
+      elif method == 1 : # pas de W2V
+            model = None
+            dicos = get_dicos_from_thesaurus(resfolder = args.resfolder2)
+      else : # hybrid, un peu tout
+            model = word2vec.load(args.resfile1)
+            dicos = get_dicos_from_thesaurus(resfolder = args.resfolder2)
 
       with codecs.open(args.infile, encoding = 'utf-8') as fin :
             with codecs.open(args.outfile, 'w', encoding = 'utf-8') as fout :
@@ -76,9 +82,9 @@ if __name__ == '__main__' :
 
                               Z = continous_bag_words(model, CTX)
                               candidats, scores = sort_response(model, candidats, Z)
-                              candidats = candidats[0 : n_candidats]
-                              print (len(candidats))
-                              print (candidats)
+			      if candidats :
+                                    candidats = candidats[0 : n_candidats]
+                              #print (candidats)
                         elif method == 3 :
 
                               # nouvelle proposition basée sur les ressources word2vec
@@ -93,8 +99,8 @@ if __name__ == '__main__' :
                               # ordonnancement de la liste des substituts proposés par le contexte
                               Z = continous_bag_words(model, CTX)
                               candidats, scores = sort_response(model, candidats, Z)
-                              candidats = candidats[0 : n_candidats]
-
+			      if candidats:
+                                  candidats = candidats[0 : n_candidats]
 
                         # sorties
                         if args.verbose :
