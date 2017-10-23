@@ -1,0 +1,34 @@
+Couverture de mots cibles pour le vocabulaire de W2V par rapport à la réponse GOLD = 0.966666666667
+Autrement dit, les mots cibles non couverts par le vocabulaire de W2V = 
+(0, u'compris.a')
+Résultat de la couverture lexicale par mot cible (tous les contextes confondus) pour l'ensemble du vocabulaire de W2V par rapport à la réponse GOLD
+        montée.n = 0.97
+         riche.a = 0.55
+     affection.n = 1.00
+      vaisseau.n = 0.84
+     direction.n = 0.97
+       essuyer.v = 0.89
+        vaseux.a = 0.74
+     incorrect.a = 0.86
+       faucher.v = 0.97
+       compris.a = 0.13
+      capacité.n = 1.00
+      éplucher.v = 0.92
+           don.n = 1.00
+        obscur.a = 0.80
+         mince.a = 0.97
+       intérêt.n = 0.98
+       modeste.a = 0.82
+    couverture.n = 0.84
+     commander.v = 0.96
+          aisé.a = 0.82
+        fonder.v = 0.90
+         débit.n = 0.93
+        espace.n = 0.98
+       arrêter.v = 0.81
+    hermétique.a = 0.76
+   interpréter.v = 0.90
+     maintenir.v = 0.97
+         taper.v = 0.98
+      grossier.a = 0.94
+     entraîner.v = 0.90

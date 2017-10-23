@@ -1,0 +1,33 @@
+Couverture de mots cibles pour FREDIC par rapport à la réponse GOLD = 0.933333333333
+Autrement dit, les mots cibles non-couverts sont
+(0, u'vaseux.a')
+(1, u'compris.a')
+Résultat de la couverture lexicale par mot cible (tous les contextes confondus) pour FREDIST par rapport à la réponse GOLD
+        montée.n = 0.43
+         riche.a = 0.22
+     affection.n = 0.52
+      vaisseau.n = 0.52
+     direction.n = 0.28
+       essuyer.v = 0.33
+       arrêter.v = 0.37
+     incorrect.a = 0.33
+       faucher.v = 0.46
+      capacité.n = 0.38
+      éplucher.v = 0.57
+           don.n = 0.34
+          aisé.a = 0.32
+         mince.a = 0.48
+       intérêt.n = 0.57
+       modeste.a = 0.48
+    couverture.n = 0.27
+     commander.v = 0.27
+        obscur.a = 0.29
+        fonder.v = 0.31
+         débit.n = 0.35
+        espace.n = 0.31
+   interpréter.v = 0.34
+    hermétique.a = 0.32
+     maintenir.v = 0.38
+         taper.v = 0.21
+      grossier.a = 0.20
+     entraîner.v = 0.37

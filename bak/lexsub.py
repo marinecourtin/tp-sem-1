@@ -98,8 +98,8 @@ def sel_cand_new (model, candidats, CTX, c_lemme, c_pos, n = -1) :
 		if c_lemme in lem :
 			i_c.append(i)
 	"""
-	ret_candidats = [candidats[i] for i in indexes_best[:n]]
-	ret_scores = [metrics[i] for i in indexes_best[:n]]
+	ret_candidats = [candidats[i] for i in indexes_best]
+	ret_scores = [metrics[i] for i in indexes_best]
 	return ret_candidats, ret_scores
 
 def generateSubstitutes_w2v(w2v_model, c_lemme, c_pos, n = 10) :
@@ -206,9 +206,8 @@ def generateSubstitutes_hybrid(w2v_model, vec, c_pos, potential_substitutes, n) 
 
 def get_dico_from_thesaurus (c_pos, resfolder = '') :
 
-	filename = ""
 	if resfolder is not '' and resfolder is not '.' :
-		filename += resfolder + "/"
+		filename = resfolder + "/"
 	filename += "thesaurus_french_".format(resfolder)+c_pos+'.txt'
 
 	dico = collections.defaultdict()
