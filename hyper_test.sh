@@ -13,11 +13,31 @@ echo 'resfile (word2vec) :' $resfile
 echo 'resfolder2 (thésaurus) :' $resfolder2
 echo 'goldfile :' $goldfile
 
+for c in 0 1
+do
+for f in 0 1 2 3 -1
+do
 for method in 0 1 2 3
 do
 echo '\tmethod :' $method
-testfile='test_method_'$method
+testfile='test_method_'$method'_cible_incluse_'$c'_F_'$f
 echo '\ttestfile :' $testfile
-python main.py $infile $resfile $resfolder2 $testfile -r $method -s $oversample
+
+if [ $c -eq 0 ]
+then
+if [ $f -eq 0 ]
+then
+continue
+fi
+fi
+
+if [ $c -eq 1 ]
+then
+	python main.py $infile $resfile $resfolder2 $testfile -r $method -s $oversample -f $f -c
+else
+	python main.py $infile $resfile $resfolder2 $testfile -r $method -s $oversample -f $f
+fi
 python semdis_eval.py -g $goldfile -t $testfile
+done
+done
 done
