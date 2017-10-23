@@ -206,8 +206,9 @@ def generateSubstitutes_hybrid(w2v_model, vec, c_pos, potential_substitutes, n) 
 
 def get_dico_from_thesaurus (c_pos, resfolder = '') :
 
+	filename = ""
 	if resfolder is not '' and resfolder is not '.' :
-		filename = resfolder + "/"
+		filename += resfolder + "/"
 	filename += "thesaurus_french_".format(resfolder)+c_pos+'.txt'
 
 	dico = collections.defaultdict()
