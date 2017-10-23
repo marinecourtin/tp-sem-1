@@ -23,9 +23,9 @@ import semdis_eval
 from lexsub import *
 
 # VARIABLES GLOBALES
-n_candidats = 10
-F_max = 6
-OVER_SAMPLING = 40
+n_candidats = 10 # max. défini dans la compagne semdis 2014
+F_max = 6 # de -1 à F_max
+OVER_SAMPLING = 40 # règlage de l'important accordé à la génération et celle à la sélection qui la suit comme étape (pour r = 0)
 
 if __name__ == '__main__' :
 
@@ -47,7 +47,7 @@ if __name__ == '__main__' :
 
 		with codecs.open(args.infile, encoding = 'utf-8') as f :
 			for i_CIBLE_INCLUSE, CIBLE_INCLUSE in enumerate([False, True]) :
-				for i_F, F in enumerate(range(-1, F_max)) :
+				for i_F, F in enumerate(range(-1, F_max+1)) :
 					t1 = time.time()
 					if not F and not CIBLE_INCLUSE : continue
 					with codecs.open(args.outfile, 'w', encoding = 'utf-8') as fout :
