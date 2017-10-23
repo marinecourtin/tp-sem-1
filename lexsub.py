@@ -1,5 +1,6 @@
 # coding:utf-8
 import argparse, word2vec, sys, numpy, codecs
+import collections
 
 dico_lemme_pos_fix = {'compris_a':'comprendre_v'}
 cat_full = ['ADJ', 'NC', 'NPP', 'V', 'VINF', 'VIMP', 'VPP', 'ADV'] # POS pour les mots pleins
@@ -63,68 +64,43 @@ def sort_response (w2v_model, candidats, Z) :
 	return candidats, scores
 
 
-def gen_subs_new (w2v_model, CTX, c_lemme, c_pos, n = -1) :
+def sel_cand_new (model, candidats, CTX, c_lemme, c_pos, n = -1) :
 
 	# pré-traitement du mot cible
 	c_lemme_pos = c_lemme + u'_' + c_pos
         if c_lemme_pos in dico_lemme_pos_fix.keys() : c_lemme_pos = dico_lemme_pos_fix[c_lemme_pos]
 
 	# convertir le contexte en vecteurs E, le mot cible en v_c
-	E = discret_bag_words (w2v_model, CTX)
-        v_c = w2v_model[c_lemme_pos]
+	E = discret_bag_words (model, CTX)
+        v_c = model[c_lemme_pos]
 
-        # sélectionner un candidat de la même POS dans le vocabulaire de W2V
+    # sélectionner un candidat de la même POS dans le vocabulaire de W2V
 	# calculer la mesure cosinus entre (le vecteur de candidat - le vecteur du mot cible) et chacun des vecteurs dans E
 	# calculer ensuite 1-norm de liste de mesure de cosinus, nommons le résultat comme A
-	metricsA = None
-	metrics = None
-	for v_contexte in E :
-		metrics = numpy.dot(w2v_model.vectors, v_contexte) # similarités entre tous les mots du vocabulaires et v_contexte
-		bias = numpy.dot(v_c, v_contexte)                  # similarité entre le mot cible et v_contexte
-		for i in range(len(metrics)) : metrics[i] -= bias  # corriger le 'biais' dans la liste de similarités de candidats
-		metrics = numpy.absolute(metrics)                  # absolute value -> distance
-		if metricsA is None : metricsA = metrics # initialisation
-		else : metricsA += metrics # accumuler pour calculer 1-norm sur |E| éléments réels
+	metrics = [] ; metric = []
+	for candidat in candidats :
+		metric = 0.0
+		if candidat in model.vocab :
+			v_candidat = model[candidat]
+			for v_contexte in E :
+				metric += abs(numpy.dot(v_candidat - v_c, v_contexte))
+			metrics.append(metric)
 
-	# calculer la mesure cosinus entre le vectuer de candidat et le vecteur du mot cible, nommée B
-	metricsB = numpy.dot(w2v_model.vectors, v_c)
-
-	# le score est soit -A, soit B, soit B - alpha * A, alpha est un constant
-	if metricsB is None : metricsB = -metricsA
-	if metricsA is None : metricsA = -metricsB
-	if metricsA is not None and metricsB is not None :
-		if E : alpha = 1/len(E)
-		else : alpha = 1
-		scores = metricsB - metricsA * alpha
-		indexes_best = numpy.argsort(scores)[::-1]
+	if metrics is not None  :
+		indexes_best = numpy.argsort(metrics)
 	else : return None, None
 
-
-	# génération des n meilleurs candidats
-	# sélectionner les n meilleures candidats selon la métrique de cosinus
-        # les candidats doivent avoir la catégorie POS spécifié par 'pos_desired'
-        cnt = 0
-        candidats = []
-        scores2 = []
-	i_c = []
 	# créer une liste de mots graphiquement proches du mots cibles, donc à ne pas mettre dans les réponses
+	"""
 	c_lemme = c_lemme_pos.split('_')[0]
 	for i, lem_pos in enumerate(w2v_model.vocab):
 		lem = lem_pos.split('_')[0]
-		if c_lemme in lem : i_c.append(i)
-
-        for cursor, i in enumerate(indexes_best) :
-		if i in i_c : continue
-                word_pos = w2v_model.vocab[i]
-                # ex: word_pos = 'intéresser_v' -> pos = 'v'
-                pos = word_pos.split('_')[-1]
-                if pos == c_pos :
-                        candidats.append(w2v_model.vocab[i])
-                        scores2.append(scores[i])
-                        cnt += 1
-                        if cnt == n : break # on ne prend que les n meilleurs
-
-        return candidats, scores2
+		if c_lemme in lem :
+			i_c.append(i)
+	"""
+	ret_candidats = [candidats[i] for i in indexes_best]
+	ret_scores = [metrics[i] for i in indexes_best]
+	return ret_candidats, ret_scores
 
 def generateSubstitutes_w2v(w2v_model, c_lemme, c_pos, n = 10) :
 
@@ -228,7 +204,32 @@ def generateSubstitutes_hybrid(w2v_model, vec, c_pos, potential_substitutes, n) 
 
 	return candidats, scores
 
-def generateSubstitutes(c, c_pos, n=-1): #surement optimisable
+def get_dico_from_thesaurus (c_pos, resfolder = '') :
+
+	if resfolder is not '' and resfolder is not '.' :
+		filename = resfolder + "/"
+	filename += "thesaurus_french_".format(resfolder)+c_pos+'.txt'
+
+	dico = collections.defaultdict()
+
+	with codecs.open(filename, encoding = 'utf-8') as f :
+		for line in f:
+			line = line.split("\t")
+			term, subs = (line[0].split("|")[1], line[1:])
+			candidats = [sub.split("|")[1] for sub in subs]
+			candidats = [can.split(":")[0] for can in candidats]
+			dico[term] = candidats
+
+	return dico
+
+def get_dicos_from_thesaurus(cats=['A','N','V','ADV'], resfolder = '') :
+	dicos = collections.defaultdict()
+	for cat in cats:
+		#print (cat)
+		dicos[cat] = get_dico_from_thesaurus (cat, resfolder)
+	return dicos
+
+def generateSubstitutes(dicos, c, c_pos, n=-1): #surement optimisable
 	"""
 	sélectionne les candidats substituts à la cible. La fonction est basée sur
 	l'utilisation de la ressource FREDIST disponible à l'adresse :
@@ -239,7 +240,15 @@ def generateSubstitutes(c, c_pos, n=-1): #surement optimisable
 	"""
 	candidats = None
 	c_pos = c_pos.upper()
-	with codecs.open("./thesauri-1.0/thesaurus_french_"+c_pos+'.txt', encoding = 'utf-8') as f :
+
+	"""
+	if resfolder is not '' and resfolder is not '.' :
+		filename = resfolder + "/"
+	filename += "thesaurus_french_".format(resfolder)+c_pos+'.txt'
+	"""
+
+	"""
+	with codecs.open(filename, encoding = 'utf-8') as f :
 		for line in f:
 			line = line.split("\t")
 			if n >= 0:
@@ -253,7 +262,17 @@ def generateSubstitutes(c, c_pos, n=-1): #surement optimisable
 				# print(term, c, candidats)
 		if not candidats:
 			return None
-	return candidats
+	"""
+	dico = dicos[c_pos]
+	#dico = get_dico_from_thesaurus (c_pos, resfolder)
+	#print(len(dico.keys()))
+	if c in dico.keys():
+		if n > 0:
+			return dico[c][:n]
+		else :
+			return dico[c]
+	else:
+		return []
 
 def rm_stopword_from_tokens(tokens, cat_full, c_position) :
 	tokens_full = []
