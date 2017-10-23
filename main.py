@@ -112,9 +112,6 @@ if __name__ == '__main__' :
                         if candidats :
                               export_substituants (id, c, c_pos, candidats, fout)
 
-                  # évaluation
-                  if method != 1 :
-                      print (u'OVERSAMPLING RATIO : {}'.format(OVER_SAMPLING))
+                  # info:
                   print (u'(MÉTHODE, F, CIBLE_INCLUSE) = ({}, {}, {})'.format(method, args.f_width, args.cible_incluse))
-
             print (u"Temps écoulée : {}".format(get_duration(t1_secs = t1, t2_secs = time.time())))
